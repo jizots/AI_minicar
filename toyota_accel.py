@@ -17,7 +17,7 @@ def moving_forward(a_time):
 	# ====  １秒間まっすぐ進む  ====
 	# タイヤを前進方向に回転させる
 	pwm.set_pwm(1, 0, pwm_forward)
-	# １秒間続ける
+	# a_sleep秒間続ける
 	time.sleep(a_time)
 
 def moving_backward(a_time):
@@ -25,10 +25,10 @@ def moving_backward(a_time):
 	# ====  １秒間まっすぐ進む  ====
 	# タイヤを前進方向に回転させる
 	pwm.set_pwm(1, 0, pwm_back)
-	# １秒間続ける
+	# a_sleep秒間続ける
 	time.sleep(a_time)
 
-def stop(a_time):
+def stop():
 	print('stop')
 	# タイヤを停止させる
 	pwm.set_pwm(1, 0, pwm_stop)
@@ -36,7 +36,7 @@ def stop(a_time):
 def	main():
     moving_forward(2)
     moving_backward(2)
-    stop(2)
+    stop()
 
 if __name__ == "__main__":
     main()
