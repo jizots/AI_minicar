@@ -8,8 +8,8 @@ pwm_forward = 360
 pwm_back = 420
 pwm_stop = 372
 
-# moving forward ~ 371
-# moving backward 390 ~
+# moving forward ~371
+# moving backward 390~
 # stop 372~389
 
 def moving_forward(a_time):
