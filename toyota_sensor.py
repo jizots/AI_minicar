@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import time
 import RPi.GPIO as GPIO #ラズパイのGPIOピンを操作するためのモジュール
 
@@ -50,3 +51,9 @@ def main():
         measure_the_distance(CHANNEL_SENSOR_TRIG_F, CHANNEL_SENSOR_ECHO_F)
         measure_the_distance(CHANNEL_SENSOR_TRIG_FR, CHANNEL_SENSOR_ECHO_FR)
     GPIO.cleanup()
+
+if __name__ == "__main__":
+    main()
+
+def sensor(shared_data):
+     print("Sensor")

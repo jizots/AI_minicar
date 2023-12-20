@@ -45,3 +45,6 @@ def	main():
 
 if __name__ == "__main__":
     main()
+
+def steering(shared_data):
+    print("Steering")
