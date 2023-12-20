@@ -4,12 +4,12 @@ import RPi.GPIO as GPIO #ラズパイのGPIOピンを操作するためのモジ
 
 D = 0
 
-CHANNEL_SENSOR_TRIG_FL = 13
-CHANNEL_SENSOR_ECHO_FL = 24
-CHANNEL_SENSOR_TRIG_F = 15
-CHANNEL_SENSOR_ECHO_F = 26
+CHANNEL_SENSOR_TRIG_FL = 15
+CHANNEL_SENSOR_ECHO_FL = 26
+CHANNEL_SENSOR_TRIG_F = 13
+CHANNEL_SENSOR_ECHO_F = 24
 CHANNEL_SENSOR_TRIG_FR = 32
-CHANNEL_SENSOR_ECHO_FR = 31
+CHANNEL_SENSOR_ECHO_FR = 3
 
 def init_sensor(trig, echo):
     # GPIOピン番号の指示方法
@@ -32,11 +32,11 @@ def measure_the_distance(trig, echo):
     while(GPIO.input(echo) == GPIO.HIGH):
             sigoff=time.time() #Echoピンの電圧がLOW(0V)になるまで、sigoffを更新
     D = (sigoff - sigon)*34000/2 #距離を計算(単位はcm)
-    if trig == CHANNEL_SENSOR_ECHO_FL:
+    if echo == CHANNEL_SENSOR_ECHO_FL:
         print("FL")
-    elif trig == CHANNEL_SENSOR_ECHO_F:
+    elif echo == CHANNEL_SENSOR_ECHO_F:
         print("F")
-    elif trig == CHANNEL_SENSOR_ECHO_FR:
+    elif echo == CHANNEL_SENSOR_ECHO_FR:
         print("FR")
     print(D)
 #       if d > 200:
