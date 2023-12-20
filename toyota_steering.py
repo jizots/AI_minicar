@@ -11,8 +11,10 @@ CHANNEL_STEER = 0
 # 元に戻す、のようなものがあるのかわからなかった。荷重してからが本番か。
 PULSE_STRAIGHT = 390
 # 390, 391を境にモーター回転が反転した。
-PULSE_LEFT = 390
-PULSE_RIGHT = 391
+# Leftへは最低でも440はないと効かないかも.530以上は試していない。
+# Leftへは最低でも310はないと効かないかも.220以下は試していない。
+PULSE_LEFT = 500
+PULSE_RIGHT = 250
 # テスト用の稼働時間設定
 sleeping = 1
 
@@ -31,6 +33,7 @@ def steer_right(pulse, sleep_time):
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
+# Straightを仲介しなくても、ハンドルを切ることはできる。
 def	main():
     steer_straight(PULSE_STRAIGHT, sleeping)
     steer_left(PULSE_LEFT, sleeping)
