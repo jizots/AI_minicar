@@ -47,4 +47,7 @@ if __name__ == "__main__":
     main()
 
 def steering(shared_data):
-    print("Steering")
+    time.sleep(3) # センサープロセスが先に実行されるのを待つ
+    while True:
+        print(f"Steering:{shared_data[0]}, {shared_data[1]}, {shared_data[2]}")
+        time.sleep(1)
