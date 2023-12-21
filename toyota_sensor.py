@@ -1,15 +1,26 @@
 from concurrent.futures import ThreadPoolExecutor
+from enum import Enum
 import time
 import RPi.GPIO as GPIO #ラズパイのGPIOピンを操作するためのモジュール
 
-D = 0
 
+# GPIOピン番号を指定。列挙体を使ってみた。
+class SensorChannel(Enum):
+    TRIG_FL = 15
+    ECHO_FL = 26
+    TRIG_F = 13
+    ECHO_F = 24
+    TRIG_FR = 32
+    ECHO_FR = 31
+
+# 一応残してるけど消すかも
+D = 0
 CHANNEL_SENSOR_TRIG_FL = 15
 CHANNEL_SENSOR_ECHO_FL = 26
 CHANNEL_SENSOR_TRIG_F = 13
 CHANNEL_SENSOR_ECHO_F = 24
 CHANNEL_SENSOR_TRIG_FR = 32
-CHANNEL_SENSOR_ECHO_FR = 3
+CHANNEL_SENSOR_ECHO_FR = 31
 
 def init_sensor(trig, echo):
     # GPIOピン番号の指示方法
@@ -41,19 +52,52 @@ def measure_the_distance(trig, echo):
     print(D)
 #       if d > 200:
 #               print("forward_sensor:ok!\n")
+    time.sleep(1)
 
 def main():
+    print("Test mode")
     init_sensor(CHANNEL_SENSOR_TRIG_FL, CHANNEL_SENSOR_ECHO_FL)
     init_sensor(CHANNEL_SENSOR_TRIG_F, CHANNEL_SENSOR_ECHO_F)
     init_sensor(CHANNEL_SENSOR_TRIG_FR, CHANNEL_SENSOR_ECHO_FR)
     while True:
         measure_the_distance(CHANNEL_SENSOR_TRIG_FL, CHANNEL_SENSOR_ECHO_FL)
         measure_the_distance(CHANNEL_SENSOR_TRIG_F, CHANNEL_SENSOR_ECHO_F)
-        measure_the_distance(CHANNEL_SENSOR_TRIG_FR, CHANNEL_SENSOR_ECHO_FR)
+        # measure_the_distance(CHANNEL_SENSOR_TRIG_FR, CHANNEL_SENSOR_ECHO_FR)
     GPIO.cleanup()
 
 if __name__ == "__main__":
     main()
 
+def measure_distance(trig, echo, shared_data, sensor_id):
+    sigon = 0
+    sigoff = 0
+    while True:
+        GPIO.output(trig, GPIO.HIGH)
+        time.sleep(0.00001)
+        GPIO.output(trig, GPIO.LOW)
+        while(GPIO.input(echo) == GPIO.LOW):
+            sigon = time.time()
+        while(GPIO.input(echo) == GPIO.HIGH):
+            sigoff = time.time()
+        shared_data[sensor_id] = (sigoff - sigon)*34000/2
+        print(f"Sensor_id:{sensor_id}, Distance:{shared_data[sensor_id]} cm")
+        time.sleep(1) # デバッグ用に長くしてあるので、走行の時は変更。測定の間隔
+    GPIO.cleanup()
+
+# main.pyから呼び出される関数
 def sensor(shared_data):
-     print("Sensor")
+    print("Sensor")
+    GPIO.cleanup()
+    init_sensor(SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value)
+    init_sensor(SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value)
+    init_sensor(SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value)
+
+    with ThreadPoolExecutor() as texec:
+        for sensor_id in range(3):
+            if sensor_id == 0:
+                texec.submit(measure_distance, SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value, shared_data, sensor_id)
+            elif sensor_id == 1:
+                texec.submit(measure_distance, SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value, shared_data, sensor_id)
+            elif sensor_id == 2:
+                texec.submit(measure_distance, SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value, shared_data, sensor_id)
+
