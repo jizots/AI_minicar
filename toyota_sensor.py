@@ -11,7 +11,7 @@ class SensorChannel(Enum):
     TRIG_F = 13
     ECHO_F = 24
     TRIG_FR = 32
-    ECHO_FR = 3
+    ECHO_FR = 31
 
 # 一応残してるけど消すかも
 D = 0
@@ -20,7 +20,7 @@ CHANNEL_SENSOR_ECHO_FL = 26
 CHANNEL_SENSOR_TRIG_F = 13
 CHANNEL_SENSOR_ECHO_F = 24
 CHANNEL_SENSOR_TRIG_FR = 32
-CHANNEL_SENSOR_ECHO_FR = 3
+CHANNEL_SENSOR_ECHO_FR = 31
 
 def init_sensor(trig, echo):
     # GPIOピン番号の指示方法
