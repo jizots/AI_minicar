@@ -10,10 +10,10 @@ pwm.set_pwm_freq(60)
 # PCA9685とモーターの接続チャネル番号
 CHANNEL_STEER = 0
 # 元に戻す、のようなものがあるのかわからなかった。荷重してからが本番か。
-PULSE_STRAIGHT = 390
 # 390, 391を境にモーター回転が反転した。
 # Leftへは最低でも440はないと効かないかも.530以上は試していない。
 # Rightへは最低でも310はないと効かないかも.220以下は試していない。
+PULSE_STRAIGHT = 390
 PULSE_LEFT = 500
 PULSE_RIGHT = 250
 
@@ -57,6 +57,8 @@ def setting(shared_data):
     elif (shared_data[SensorIndex.FL.value] >= 20
           & shared_data[SensorIndex.F.value] < shared_data[SensorIndex.FR.value]): #右カーブする時か？
         steer_right(PULSE_RIGHT, 0.05)
+    else: # 左カーブする時か？
+        steer_left(PULSE_LEFT, 0.05)
 
 def steering(shared_data):
     time.sleep(1) # センサープロセスが先に開始するのを待つ
