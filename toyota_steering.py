@@ -1,5 +1,6 @@
 import Adafruit_PCA9685
 import time
+from enum import Enum
 
 # ラズパイから見たPCA9685の所在地の設定
 pwm = Adafruit_PCA9685.PCA9685(address=0x40, busnum=1)
@@ -12,11 +13,17 @@ CHANNEL_STEER = 0
 PULSE_STRAIGHT = 390
 # 390, 391を境にモーター回転が反転した。
 # Leftへは最低でも440はないと効かないかも.530以上は試していない。
-# Leftへは最低でも310はないと効かないかも.220以下は試していない。
+# Rightへは最低でも310はないと効かないかも.220以下は試していない。
 PULSE_LEFT = 500
 PULSE_RIGHT = 250
-# テスト用の稼働時間設定
-sleeping = 1
+
+# shared_dataのインデントとセンサーの関係性をわかりやすくする用
+class SensorIndex(Enum):
+    FL = 0
+    F = 1
+    FR = 2
+    LF = 3
+    LB = 4
 
 def steer_straight(pulse, sleep_time):
     print('steer_straight')
@@ -33,21 +40,27 @@ def steer_right(pulse, sleep_time):
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
-# Straightを仲介しなくても、ハンドルを切ることはできる。
-def	main():
-    steer_straight(PULSE_STRAIGHT, sleeping)
-    steer_left(PULSE_LEFT, sleeping)
-    steer_straight(PULSE_STRAIGHT, sleeping)
-    steer_right(PULSE_RIGHT, sleeping)
-    steer_left(PULSE_LEFT, sleeping)
-    steer_right(PULSE_RIGHT, sleeping)
-    steer_straight(PULSE_STRAIGHT, sleeping)
-
-if __name__ == "__main__":
-    main()
+def setting(shared_data):
+    if (shared_data[SensorIndex.FL.value] >= 20
+        & shared_data[SensorIndex.F.value]
+        & shared_data[SensorIndex.F.value] > shared_data[SensorIndex.FR.value]): #前が空いてる状態か？
+        if (abs(shared_data[SensorIndex.LF] - shared_data[SensorIndex.LB.value]) < 4): #車体は壁に水平か？
+            steer_straight(PULSE_STRAIGHT, 0.05)
+        elif ((shared_data[SensorIndex.LB] - shared_data[SensorIndex.LF.value] > 4)): #車体が左に傾いている？
+            steer_right(PULSE_RIGHT, 0.05)
+        else: #車体が右に傾いている？
+            steer_left(PULSE_LEFT, 0.05)
+    elif (shared_data[SensorIndex.FL.value] < 20
+          & shared_data[SensorIndex.F.value] < 30
+          & shared_data[SensorIndex.FR.value] < 40): #後ろに下がるしかない状態か？
+        steer_straight(PULSE_STRAIGHT, 0.4)
+    elif (shared_data[SensorIndex.FL.value] >= 20
+          & shared_data[SensorIndex.F.value] < shared_data[SensorIndex.FR.value]): #右カーブする時か？
+        steer_right(PULSE_RIGHT, 0.05)
 
 def steering(shared_data):
-    time.sleep(3) # センサープロセスが先に実行されるのを待つ
+    time.sleep(1) # センサープロセスが先に開始するのを待つ
     while True:
         print(f"Steering:{shared_data[0]}, {shared_data[1]}, {shared_data[2]}")
         time.sleep(1)
+        setting(shared_data)
