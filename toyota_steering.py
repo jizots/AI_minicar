@@ -40,10 +40,11 @@ def steer_right(pulse, sleep_time):
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
+# shared_dataをローカル変数にコピーするか？何度もアクセスするので、今のままでいいのかわからない。
 def setting(shared_data):
     if (shared_data[SensorIndex.FL.value] >= 20
         & shared_data[SensorIndex.F.value]
-        & shared_data[SensorIndex.F.value] > shared_data[SensorIndex.FR.value]): #前が空いてる状態か？
+        & shared_data[SensorIndex.F.value] > shared_data[SensorIndex.FR.value]): #前方が空いてる状態か？
         if (abs(shared_data[SensorIndex.LF] - shared_data[SensorIndex.LB.value]) < 4): #車体は壁に水平か？
             steer_straight(PULSE_STRAIGHT, 0.05)
         elif ((shared_data[SensorIndex.LB] - shared_data[SensorIndex.LF.value] > 4)): #車体が左に傾いている？
@@ -56,9 +57,9 @@ def setting(shared_data):
         steer_straight(PULSE_STRAIGHT, 0.4)
     elif (shared_data[SensorIndex.FL.value] >= 20
           & shared_data[SensorIndex.F.value] < shared_data[SensorIndex.FR.value]): #右カーブする時か？
-        steer_right(PULSE_RIGHT, 0.05)
+        steer_right(PULSE_RIGHT, 0.1)
     else: # 左カーブする時か？
-        steer_left(PULSE_LEFT, 0.05)
+        steer_left(PULSE_LEFT, 0.1)
 
 def steering(shared_data):
     time.sleep(1) # センサープロセスが先に開始するのを待つ
