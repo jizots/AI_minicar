@@ -64,6 +64,10 @@ def setting(shared_data):
 def steering(shared_data):
     time.sleep(1) # センサープロセスが先に開始するのを待つ
     while True:
-        print(f"Steering:{shared_data[0]}, {shared_data[1]}, {shared_data[2]}")
+        print(f"Steering:{shared_data[0]},\
+            {shared_data[1]},\
+            {shared_data[2]},\
+            {shared_data[3]},\
+            {shared_data[4]}")
         time.sleep(1)
         setting(shared_data)
