@@ -25,12 +25,13 @@ CHANNEL_SENSOR_ECHO_FR = 31
 def init_sensor(trig, echo):
     # GPIOピン番号の指示方法
 	GPIO.setmode(GPIO.BOARD)
-	#超音波センサ初期設定
-	print(trig)
-	print(echo)
+	# 超音波センサ初期設定
+	# print(trig)
+	# print(echo)
 	GPIO.setup(trig,GPIO.OUT, initial=GPIO.LOW)
 	GPIO.setup(echo,GPIO.IN)
 
+### ここからプログラム単体テスト用
 def measure_the_distance(trig, echo):
     global D
     sigon = 0 #Echoピンの電圧が0V→3.3Vに変わった時間を記録する変数
@@ -67,6 +68,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+### ここまでプログラム単体テスト用
 
 def measure_distance(trig, echo, shared_data, sensor_id):
     sigon = 0
@@ -86,12 +88,12 @@ def measure_distance(trig, echo, shared_data, sensor_id):
 
 # main.pyから呼び出される関数
 def sensor(shared_data):
-    print("Sensor")
-    GPIO.cleanup()
+    # センサーの初期設定
     init_sensor(SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value)
     init_sensor(SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value)
     init_sensor(SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value)
 
+    # スレッド化して実行
     with ThreadPoolExecutor() as texec:
         for sensor_id in range(3):
             if sensor_id == 0:
