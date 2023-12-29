@@ -1,8 +1,11 @@
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 import time
+import threading
 import RPi.GPIO as GPIO #ラズパイのGPIOピンを操作するためのモジュール
 
+# Lockオブジェクトの初期化
+lock = threading.Lock()
 
 # GPIOピン番号を指定。ラズパイのピン番号。列挙体を使ってみた。
 class SensorChannel(Enum):
@@ -87,20 +90,32 @@ if __name__ == "__main__":
 ### ここまでプログラム単体テスト用
 
 def measure_distance(trig, echo, shared_data, sensor_id):
-    sigon = 0
-    sigoff = 0
     while True:
-        GPIO.output(trig, GPIO.HIGH)
-        time.sleep(0.00001)
-        GPIO.output(trig, GPIO.LOW)
-        while(GPIO.input(echo) == GPIO.LOW):
-            sigon = time.time()
-        while(GPIO.input(echo) == GPIO.HIGH):
-            sigoff = time.time()
-        shared_data[sensor_id] = (sigoff - sigon)*34000/2
-        print(f"Sensor_id:{sensor_id}, Distance:{shared_data[sensor_id]} cm")
-        time.sleep(1) # デバッグ用に長くしてあるので、走行の時は変更。測定の間隔
-    GPIO.cleanup()
+        try:
+            with lock:
+                GPIO.output(trig, GPIO.HIGH) #ultrasonicを発信
+                time.sleep(0.00001)
+                GPIO.output(trig, GPIO.LOW) #ultrasonicを停止
+                sigon = time.time()
+                while GPIO.input(echo) == GPIO.LOW: #反射したultrasonicを受信するまで待機
+                    if time.time() - sigon > 0.01:  # 10msを超えたらタイムアウト
+                        raise RuntimeError("Echo signal timeout (LOW)")
+                sigoff = time.time()
+                while GPIO.input(echo) == GPIO.HIGH: #反射したultrasonicの末端が来るのを待つ
+                    if time.time() - sigoff > 0.01:  # 10msを超えたらタイムアウト
+                        raise RuntimeError("Echo signal timeout (HIGH)")
+                distance = (sigoff - sigon) * 34000 / 2
+                shared_data[sensor_id] = round(distance)
+        except RuntimeError as e:
+            print(f"Error with sensor {sensor_id}: {e}")
+            # エラーがあった場合は値を変更しない
+            time.sleep(0.1)  # 一定時間待ってから再試行
+        except Exception as e:
+            print(f"Unexpected error with sensor {sensor_id}: {e}")
+            break  # 予期せぬエラーが発生した場合、ループを終了
+
+        time.sleep(0.1)  # 正常な測定の間隔
+
 
 # main.pyから呼び出される関数
 def sensor(shared_data):
