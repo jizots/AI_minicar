@@ -90,31 +90,29 @@ if __name__ == "__main__":
 ### ここまでプログラム単体テスト用
 
 def measure_distance(trig, echo, shared_data, sensor_id):
+    sigon = 0
+    sigoff = 0
+    distance_array = [0, 0]  # 要素数2の配列
+    counter = 0  # カウントアップ用変数
     while True:
-        try:
-            with lock:
-                GPIO.output(trig, GPIO.HIGH) #ultrasonicを発信
-                time.sleep(0.00001)
-                GPIO.output(trig, GPIO.LOW) #ultrasonicを停止
-                sigon = time.time()
-                while GPIO.input(echo) == GPIO.LOW: #反射したultrasonicを受信するまで待機
-                    if time.time() - sigon > 0.01:  # 10msを超えたらタイムアウト
-                        raise RuntimeError("Echo signal timeout (LOW)")
-                sigoff = time.time()
-                while GPIO.input(echo) == GPIO.HIGH: #反射したultrasonicの末端が来るのを待つ
-                    if time.time() - sigoff > 0.01:  # 10msを超えたらタイムアウト
-                        raise RuntimeError("Echo signal timeout (HIGH)")
-                distance = (sigoff - sigon) * 34000 / 2
-                shared_data[sensor_id] = round(distance)
-        except RuntimeError as e:
-            print(f"Error with sensor {sensor_id}: {e}")
-            # エラーがあった場合は値を変更しない
-            time.sleep(0.1)  # 一定時間待ってから再試行
-        except Exception as e:
-            print(f"Unexpected error with sensor {sensor_id}: {e}")
-            break  # 予期せぬエラーが発生した場合、ループを終了
-
-        time.sleep(0.1)  # 正常な測定の間隔
+        GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
+        time.sleep(0.00001)
+        GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
+        while GPIO.input(echo) == GPIO.LOW:
+            sigon = time.time()
+        while GPIO.input(echo) == GPIO.HIGH:
+            sigoff = time.time()
+        # 距離の計算
+        distance = round((sigoff - sigon) * 34000 / 2)
+        # 配列にデータを格納
+        index = counter % 2
+        distance_array[index] = distance
+        # 平均値の計算
+        average_distance = sum(distance_array) / len(distance_array)
+        shared_data[sensor_id] = average_distance
+        print(f"Sensor_id:{sensor_id}, Distance:{average_distance} cm")
+        counter += 1  # カウンターのインクリメント
+        time.sleep(0.5)  # 測定の間隔    GPIO.cleanup()
 
 
 # main.pyから呼び出される関数

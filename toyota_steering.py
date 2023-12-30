@@ -15,7 +15,9 @@ CHANNEL_STEER = 0
 # Rightへは最低でも310はないと効かないかも.220以下は試していない。
 PULSE_STRAIGHT = 390
 PULSE_LEFT = 500
+PULSE_LEFT_WEEKLY = 480
 PULSE_RIGHT = 250
+PULSE_RIGHT_WEEKLY = 275
 
 # shared_dataのインデントとセンサーの関係性をわかりやすくする用
 class SensorIndex(Enum):
@@ -42,34 +44,39 @@ def steer_right(pulse, sleep_time):
 
 # shared_dataをローカル変数にコピーするか？何度もアクセスするので、今のままでいいのかわからない。
 def setting(copy_data):
-    if ((copy_data[SensorIndex.FL.value] >= 20)
+    if (copy_data[SensorIndex.FR.value] < 20):
+        steer_left(PULSE_LEFT, 0.1)
+    elif (copy_data[SensorIndex.FL.value] < 20):
+        steer_left(PULSE_RIGHT, 0.1)
+    elif ((copy_data[SensorIndex.FL.value] >= 15)
         and (copy_data[SensorIndex.F.value] >= 60)
         and (copy_data[SensorIndex.F.value] > copy_data[SensorIndex.FR.value])): #前方が空いてる状態か？
         if ((abs(copy_data[SensorIndex.LF.value] - copy_data[SensorIndex.LB.value])) < 4): #車体は壁に水平か？
-            steer_straight(PULSE_STRAIGHT, 0.05)
+            steer_straight(PULSE_STRAIGHT, 0.1)
         elif ((copy_data[SensorIndex.LB.value] - copy_data[SensorIndex.LF.value]) > 4): #車体が左に傾いている？
-            steer_right(PULSE_RIGHT, 0.05)
+            steer_right(PULSE_RIGHT_WEEKLY, 0.1)
         else: #車体が右に傾いている？
-            steer_left(PULSE_LEFT, 0.05)
-    elif ((copy_data[SensorIndex.FL.value] < 20)
+            steer_left(PULSE_LEFT_WEEKLY, 0.1)
+    elif ((copy_data[SensorIndex.FL.value] < 15)
           and (copy_data[SensorIndex.F.value] < 30)
           and (copy_data[SensorIndex.FR.value] < 40)): #後ろに下がるしかない状態か？
-        steer_straight(PULSE_STRAIGHT, 0.4)
-    elif ((copy_data[SensorIndex.FL.value] >= 20)
+        steer_straight(PULSE_STRAIGHT, 0.1)
+    elif ((copy_data[SensorIndex.FL.value] >= 15)
           and (copy_data[SensorIndex.F.value] < copy_data[SensorIndex.FR.value])): #右カーブする時か？
         steer_right(PULSE_RIGHT, 0.1)
     else: # 左カーブする時か？
         steer_left(PULSE_LEFT, 0.1)
 
 def steering(shared_data):
-    time.sleep(1) # センサープロセスが先に開始するのを待つ
+    time.sleep(2) # センサープロセスが先に開始するのを待つ
     copy_data = [0,0,0,0,0]
     while True:
         copy_data[0], copy_data[1], copy_data[2], copy_data[3], copy_data[4] = shared_data[0], shared_data[1], shared_data[2], shared_data[3], shared_data[4] 
-        print(f"Steering:{copy_data[0]},\
-            {copy_data[1]},\
-            {copy_data[2]},\
-            {copy_data[3]},\
-            {copy_data[4]}")
+        print(f"Steering:{copy_data[SensorIndex.FL.value]}, \
+{copy_data[SensorIndex.F.value]}, \
+{copy_data[SensorIndex.FR.value]}, \
+{copy_data[SensorIndex.LF.value]}, \
+{copy_data[SensorIndex.LB.value]}")
+
         time.sleep(0.05)
         setting(copy_data)
