@@ -110,9 +110,9 @@ def measure_distance(trig, echo, shared_data, sensor_id):
         # 平均値の計算
         average_distance = sum(distance_array) / len(distance_array)
         shared_data[sensor_id] = average_distance
-        print(f"Sensor_id:{sensor_id}, Distance:{average_distance} cm")
+        #print(f"Sensor_id:{sensor_id}, Distance:{average_distance} cm")
         counter += 1  # カウンターのインクリメント
-        time.sleep(0.5)  # 測定の間隔    GPIO.cleanup()
+        time.sleep(0.1)  # 測定の間隔    GPIO.cleanup()
 
 
 # main.pyから呼び出される関数
