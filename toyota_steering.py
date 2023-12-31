@@ -24,8 +24,8 @@ class SensorIndex(Enum):
     FL = 0
     F = 1
     FR = 2
-    LF = 3
-    LB = 4
+    L = 3
+    R = 4
 
 def steer_straight(pulse, sleep_time):
     print('steer_straight')
@@ -42,21 +42,17 @@ def steer_right(pulse, sleep_time):
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
-# shared_dataをローカル変数にコピーするか？何度もアクセスするので、今のままでいいのかわからない。
 def setting(copy_data):
-    if (copy_data[SensorIndex.FR.value] < 20):
+    if (copy_data[SensorIndex.FR.value] < 20 or
+        copy_data[SensorIndex.R.value] < 20):
         steer_left(PULSE_LEFT, 0.3)
-    elif (copy_data[SensorIndex.FL.value] < 20):
+    elif (copy_data[SensorIndex.FL.value] < 20 or
+        copy_data[SensorIndex.L.value] < 20):
         steer_left(PULSE_RIGHT, 0.3)
     elif ((copy_data[SensorIndex.FL.value] >= 15)
         and (copy_data[SensorIndex.F.value] >= 60)
         and (copy_data[SensorIndex.F.value] > copy_data[SensorIndex.FR.value])): #前方が空いてる状態か？
-        if ((abs(copy_data[SensorIndex.LF.value] - copy_data[SensorIndex.LB.value])) < 4): #車体は壁に水平か？
             steer_straight(PULSE_STRAIGHT, 0.3)
-        elif ((copy_data[SensorIndex.LB.value] - copy_data[SensorIndex.LF.value]) > 4): #車体が左に傾いている？
-            steer_right(PULSE_RIGHT_WEEKLY, 0.3)
-        else: #車体が右に傾いている？
-            steer_left(PULSE_LEFT_WEEKLY, 0.3)
     elif ((copy_data[SensorIndex.FL.value] < 15)
           and (copy_data[SensorIndex.F.value] < 30)
           and (copy_data[SensorIndex.FR.value] < 40)): #後ろに下がるしかない状態か？
@@ -71,12 +67,16 @@ def steering(shared_data):
     time.sleep(2) # センサープロセスが先に開始するのを待つ
     copy_data = [0,0,0,0,0]
     while True:
-        copy_data[0], copy_data[1], copy_data[2], copy_data[3], copy_data[4] = shared_data[0], shared_data[1], shared_data[2], shared_data[3], shared_data[4] 
+        copy_data[0] = shared_data[0]  # front_left
+        copy_data[1] = shared_data[1]  # front
+        copy_data[2] = shared_data[2]  # front_right
+        copy_data[3] = shared_data[3]  # left
+        copy_data[4] = shared_data[4]  # right
         print(f"Steering:{copy_data[SensorIndex.FL.value]}, \
 {copy_data[SensorIndex.F.value]}, \
 {copy_data[SensorIndex.FR.value]}, \
-{copy_data[SensorIndex.LF.value]}, \
-{copy_data[SensorIndex.LB.value]}")
+{copy_data[SensorIndex.L.value]}, \
+{copy_data[SensorIndex.R.value]}")
 
         time.sleep(0.05)
         setting(copy_data)
