@@ -92,8 +92,8 @@ if __name__ == "__main__":
 def measure_distance(trig, echo, shared_data, sensor_id):
     sigon = 0
     sigoff = 0
-    distance_array = [0, 0]  # 要素数2の配列
-    counter = 0  # カウントアップ用変数
+    # distance_array = [0, 0]  # 要素数2の配列
+    # counter = 0  # カウントアップ用変数
     while True:
         GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
         time.sleep(0.00001)
@@ -103,16 +103,17 @@ def measure_distance(trig, echo, shared_data, sensor_id):
         while GPIO.input(echo) == GPIO.HIGH:
             sigoff = time.time()
         # 距離の計算
-        distance = round((sigoff - sigon) * 34000 / 2)
-        # 配列にデータを格納
-        index = counter % 2
-        distance_array[index] = distance
-        # 平均値の計算
-        average_distance = sum(distance_array) / len(distance_array)
-        shared_data[sensor_id] = average_distance
+        shared_data[sensor_id] = round((sigoff - sigon) * 34000 / 2)
+        # distance = round((sigoff - sigon) * 34000 / 2)
+        # # 配列にデータを格納
+        # index = counter % 2
+        # distance_array[index] = distance
+        # # 平均値の計算
+        # average_distance = sum(distance_array) / len(distance_array)
+        # shared_data[sensor_id] = average_distance
         #print(f"Sensor_id:{sensor_id}, Distance:{average_distance} cm")
-        counter += 1  # カウンターのインクリメント
-        time.sleep(0.1)  # 測定の間隔    GPIO.cleanup()
+        # counter += 1  # カウンターのインクリメント
+        time.sleep(0.05)  # 測定の間隔
 
 
 # main.pyから呼び出される関数

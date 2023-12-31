@@ -14,10 +14,10 @@ CHANNEL_STEER = 0
 # Leftへは最低でも440はないと効かないかも.530以上は試していない。
 # Rightへは最低でも310はないと効かないかも.220以下は試していない。
 PULSE_STRAIGHT = 390
-PULSE_LEFT = 500
+PULSE_LEFT = 460
 PULSE_LEFT_WEEKLY = 480
-PULSE_RIGHT = 250
-PULSE_RIGHT_WEEKLY = 275
+PULSE_RIGHT = 300
+PULSE_RIGHT_WEEKLY = 310
 
 # shared_dataのインデントとセンサーの関係性をわかりやすくする用
 class SensorIndex(Enum):
@@ -43,25 +43,30 @@ def steer_right(pulse, sleep_time):
     time.sleep(sleep_time)
 
 def setting(copy_data):
-    if (copy_data[SensorIndex.FR.value] < 20 or
-        copy_data[SensorIndex.R.value] < 20):
-        steer_left(PULSE_LEFT, 0.3)
-    elif (copy_data[SensorIndex.FL.value] < 20 or
-        copy_data[SensorIndex.L.value] < 20):
-        steer_left(PULSE_RIGHT, 0.3)
-    elif ((copy_data[SensorIndex.FL.value] >= 15)
-        and (copy_data[SensorIndex.F.value] >= 60)
-        and (copy_data[SensorIndex.F.value] > copy_data[SensorIndex.FR.value])): #前方が空いてる状態か？
-            steer_straight(PULSE_STRAIGHT, 0.3)
-    elif ((copy_data[SensorIndex.FL.value] < 15)
-          and (copy_data[SensorIndex.F.value] < 30)
-          and (copy_data[SensorIndex.FR.value] < 40)): #後ろに下がるしかない状態か？
-        steer_straight(PULSE_STRAIGHT, 0.3)
-    elif ((copy_data[SensorIndex.FL.value] >= 15)
-          and (copy_data[SensorIndex.F.value] < copy_data[SensorIndex.FR.value])): #右カーブする時か？
-        steer_right(PULSE_RIGHT, 0.3)
-    else: # 左カーブする時か？
-        steer_left(PULSE_LEFT, 0.3)
+    if (copy_data[SensorIndex.FL.value] < 30 or
+        copy_data[SensorIndex.L.value] < 25):
+        if (copy_data[SensorIndex.F.value] < 15):
+            steer_straight(PULSE_STRAIGHT, 0.1)
+        else:
+            steer_right(PULSE_RIGHT, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.01)
+    elif (copy_data[SensorIndex.FR.value] < 30 or
+        copy_data[SensorIndex.R.value] < 25):
+        if (copy_data[SensorIndex.F.value] < 15):
+            steer_straight(PULSE_STRAIGHT, 0.1)
+        else:
+            steer_left(PULSE_LEFT, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.01)
+    elif ((30 <= copy_data[SensorIndex.FR.value])
+        and (copy_data[SensorIndex.F.value] < (copy_data[SensorIndex.FR.value] / 3 * 2))):
+            steer_right(PULSE_RIGHT_WEEKLY, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.01)
+    elif ((30 <= copy_data[SensorIndex.FL.value])
+        and (copy_data[SensorIndex.F.value] < (copy_data[SensorIndex.FL.value] / 3 * 2))):
+        steer_left(PULSE_LEFT, 0.1)
+        steer_straight(PULSE_STRAIGHT, 0.01)
+    else:
+        steer_straight(PULSE_STRAIGHT, 0.1)
 
 def steering(shared_data):
     time.sleep(2) # センサープロセスが先に開始するのを待つ
@@ -78,5 +83,4 @@ def steering(shared_data):
 {copy_data[SensorIndex.L.value]}, \
 {copy_data[SensorIndex.R.value]}")
 
-        time.sleep(0.05)
         setting(copy_data)
