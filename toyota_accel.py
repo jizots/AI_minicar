@@ -11,7 +11,7 @@ pwm.set_pwm_freq(60)
 # moving forward ~371
 # moving backward 390~
 # stop 372~389
-pwm_forward = 320
+pwm_forward = 325
 pwm_back = 430
 pwm_stop = 380
 strong = 60
@@ -136,7 +136,7 @@ def setting(copy_data):
 
 
 def accel(shared_data):
-    time.sleep(1)  # センサープロセスが先に開始するのを待つ
+    time.sleep(2)  # センサープロセスが先に開始するのを待つ
     copy_data = [0, 0, 0, 0, 0]
     while True:
         copy_data[0] = shared_data[0]  # front_left
@@ -144,9 +144,9 @@ def accel(shared_data):
         copy_data[2] = shared_data[2]  # front_right
         copy_data[3] = shared_data[3]  # left_front
         copy_data[4] = shared_data[4]  # left_back
-        print(f"Accel:{copy_data[0]},\
-            {copy_data[1]},\
-            {copy_data[2]},\
-            {copy_data[3]},\
-            {copy_data[4]}")
+        # print(f"Accel:{copy_data[0]},\
+        #     {copy_data[1]},\
+        #     {copy_data[2]},\
+        #     {copy_data[3]},\
+        #     {copy_data[4]}")
         setting(copy_data)

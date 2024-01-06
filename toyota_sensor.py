@@ -92,18 +92,26 @@ if __name__ == "__main__":
 def measure_distance(trig, echo, shared_data, sensor_id):
     sigon = 0
     sigoff = 0
+    distance = 0
     # distance_array = [0, 0]  # 要素数2の配列
     # counter = 0  # カウントアップ用変数
     while True:
-        GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
-        time.sleep(0.00001)
-        GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
-        while GPIO.input(echo) == GPIO.LOW:
-            sigon = time.time()
-        while GPIO.input(echo) == GPIO.HIGH:
-            sigoff = time.time()
-        # 距離の計算
-        shared_data[sensor_id] = round((sigoff - sigon) * 34000 / 2)
+        with lock:
+            GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
+            time.sleep(0.00001)
+            GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
+            while GPIO.input(echo) == GPIO.LOW:
+                sigon = time.time()
+            while GPIO.input(echo) == GPIO.HIGH:
+                sigoff = time.time()
+        # 距離の計算で大きすぎる数値は無視するVer
+        distance = round((sigoff - sigon) * 34000 / 2)
+        if distance <= 900:
+            shared_data[sensor_id] = distance
+        # else:
+        #     shared_data[sensor_id] = 60
+        # # 距離の計算で大きすぎる数値でも採用するVer
+        # shared_data[sensor_id] = round((sigoff - sigon) * 34000 / 2)
         # distance = round((sigoff - sigon) * 34000 / 2)
         # # 配列にデータを格納
         # index = counter % 2
