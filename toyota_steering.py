@@ -69,6 +69,7 @@ def setting(copy_data):
         steer_straight(PULSE_STRAIGHT, 0.1)
 
 def steering(shared_data):
+    count = 0
     time.sleep(2) # センサープロセスが先に開始するのを待つ
     copy_data = [0,0,0,0,0]
     while True:
@@ -77,10 +78,14 @@ def steering(shared_data):
         copy_data[SensorIndex.FR.value] = shared_data[2]  # front_right
         copy_data[SensorIndex.L.value] = shared_data[3]  # left
         copy_data[SensorIndex.R.value] = shared_data[4]  # right
-#         print(f"Steering:{copy_data[SensorIndex.FL.value]}, \
-# {copy_data[SensorIndex.F.value]}, \
-# {copy_data[SensorIndex.FR.value]}, \
-# {copy_data[SensorIndex.L.value]}, \
-# {copy_data[SensorIndex.R.value]}")
+        if count < 10:
+            count += 1
+        if count == 10:
+            print(f"Steering:{copy_data[SensorIndex.FL.value]}, \
+{copy_data[SensorIndex.F.value]}, \
+{copy_data[SensorIndex.FR.value]}, \
+{copy_data[SensorIndex.L.value]}, \
+{copy_data[SensorIndex.R.value]}")
+            count = 0
 
         setting(copy_data)

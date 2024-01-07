@@ -90,20 +90,26 @@ if __name__ == "__main__":
 ### ここまでプログラム単体テスト用
 
 def measure_distance(trig, echo, shared_data, sensor_id):
+    count = 0
     sigon = 0
     sigoff = 0
     distance = 0
     # distance_array = [0, 0]  # 要素数2の配列
     # counter = 0  # カウントアップ用変数
     while True:
-        with lock:
-            GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
-            time.sleep(0.00001)
-            GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
-            while GPIO.input(echo) == GPIO.LOW:
-                sigon = time.time()
-            while GPIO.input(echo) == GPIO.HIGH:
-                sigoff = time.time()
+        time.sleep(0.1)
+        GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
+        time.sleep(0.00001)
+        GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
+        while GPIO.input(echo) == GPIO.LOW:
+            sigon = time.time()
+        while GPIO.input(echo) == GPIO.HIGH:
+            if sensor_id == 4 and count == 15000:
+                print("LOW")
+                count = 0
+            else:
+                count += 1
+            sigoff = time.time()
         # 距離の計算で大きすぎる数値は無視するVer
         distance = round((sigoff - sigon) * 34000 / 2)
         if distance <= 900:
@@ -119,7 +125,18 @@ def measure_distance(trig, echo, shared_data, sensor_id):
         # # 平均値の計算
         # average_distance = sum(distance_array) / len(distance_array)
         # shared_data[sensor_id] = average_distance
-        #print(f"Sensor_id:{sensor_id}, Distance:{average_distance} cm")
+        if sensor_id == 4 and count < 50:
+            count += 1
+        if sensor_id == 4 and count == 50:
+            print(f"sensor_id: {sensor_id} distance: {distance}")
+        #     # print(
+        #     #     f" F_L: {shared_data[0]}"
+        #     #     f" F : {shared_data[1]}"
+        #     #     f" F_R: {shared_data[2]}"
+        #     #     f" L : {shared_data[3]}"
+        #     #     f" R : {shared_data[4]}"
+        #     #     )
+            count = 0
         # counter += 1  # カウンターのインクリメント
         time.sleep(0.05)  # 測定の間隔
 
