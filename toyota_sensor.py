@@ -20,7 +20,62 @@ class SensorChannel(Enum):
     TRIG_R = 33
     ECHO_R = 36
 
-# 一応残してるけど消すかも
+def init_sensor(trig, echo):
+    # GPIOピン番号の指示方法
+	GPIO.setmode(GPIO.BOARD)
+	# 超音波センサ初期設定
+	# print(trig)
+	# print(echo)
+	GPIO.setup(trig,GPIO.OUT, initial=GPIO.LOW)
+	GPIO.setup(echo,GPIO.IN)
+
+
+def measure_distance(trig, echo, shared_data, sensor_id):
+    sigon = 0
+    sigoff = 0
+    distance = 0
+    while True:
+        GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
+        time.sleep(0.00001)
+        GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
+        while GPIO.input(echo) == GPIO.LOW:
+            sigon = time.time()
+        while GPIO.input(echo) == GPIO.HIGH:
+            sigoff = time.time()
+        # 距離の計算で大きすぎる数値は無視するVer
+        distance = round((sigoff - sigon) * 34000 / 2)
+        if distance <= 900:
+            shared_data[sensor_id] = distance
+        # else:
+        #     shared_data[sensor_id] = 60 # 距離の計算で大きすぎる数値は置き換えるVer
+        time.sleep(0.05)  # 測定の間隔
+
+
+# main.pyから呼び出される関数
+def sensor(shared_data):
+    # センサーの初期設定
+    init_sensor(SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value)
+    init_sensor(SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value)
+    init_sensor(SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value)
+    init_sensor(SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value)
+    init_sensor(SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value)
+
+    # スレッド化して実行
+    with ThreadPoolExecutor() as texec:
+        for sensor_id in range(5):
+            if sensor_id == 0:
+                texec.submit(measure_distance, SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value, shared_data, sensor_id)
+            elif sensor_id == 1:
+                texec.submit(measure_distance, SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value, shared_data, sensor_id)
+            elif sensor_id == 2:
+                texec.submit(measure_distance, SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value, shared_data, sensor_id)
+            elif sensor_id == 3:
+                texec.submit(measure_distance, SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value, shared_data, sensor_id)
+            elif sensor_id == 4:
+                texec.submit(measure_distance, SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value, shared_data, sensor_id)
+
+
+### ここからプログラム単体テスト用
 D = 0
 CHANNEL_SENSOR_TRIG_FL = 15
 CHANNEL_SENSOR_ECHO_FL = 26
@@ -33,16 +88,6 @@ CHANNEL_SENSOR_ECHO_L = 40
 CHANNEL_SENSOR_TRIG_R = 33
 CHANNEL_SENSOR_ECHO_R = 36
 
-def init_sensor(trig, echo):
-    # GPIOピン番号の指示方法
-	GPIO.setmode(GPIO.BOARD)
-	# 超音波センサ初期設定
-	# print(trig)
-	# print(echo)
-	GPIO.setup(trig,GPIO.OUT, initial=GPIO.LOW)
-	GPIO.setup(echo,GPIO.IN)
-
-### ここからプログラム単体テスト用
 def measure_the_distance(trig, echo):
     global D
     sigon = 0 #Echoピンの電圧が0V→3.3Vに変わった時間を記録する変数
@@ -88,52 +133,3 @@ def main():
 if __name__ == "__main__":
     main()
 ### ここまでプログラム単体テスト用
-
-def measure_distance(trig, echo, shared_data, sensor_id):
-    sigon = 0
-    sigoff = 0
-    distance_array = [0, 0]  # 要素数2の配列
-    counter = 0  # カウントアップ用変数
-    while True:
-        GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
-        time.sleep(0.00001)
-        GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
-        while GPIO.input(echo) == GPIO.LOW:
-            sigon = time.time()
-        while GPIO.input(echo) == GPIO.HIGH:
-            sigoff = time.time()
-        # 距離の計算
-        distance = round((sigoff - sigon) * 34000 / 2)
-        # 配列にデータを格納
-        index = counter % 2
-        distance_array[index] = distance
-        # 平均値の計算
-        average_distance = sum(distance_array) / len(distance_array)
-        shared_data[sensor_id] = average_distance
-        #print(f"Sensor_id:{sensor_id}, Distance:{average_distance} cm")
-        counter += 1  # カウンターのインクリメント
-        time.sleep(0.1)  # 測定の間隔    GPIO.cleanup()
-
-
-# main.pyから呼び出される関数
-def sensor(shared_data):
-    # センサーの初期設定
-    init_sensor(SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value)
-    init_sensor(SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value)
-    init_sensor(SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value)
-    init_sensor(SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value)
-    init_sensor(SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value)
-
-    # スレッド化して実行
-    with ThreadPoolExecutor() as texec:
-        for sensor_id in range(5):
-            if sensor_id == 0:
-                texec.submit(measure_distance, SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value, shared_data, sensor_id)
-            elif sensor_id == 1:
-                texec.submit(measure_distance, SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value, shared_data, sensor_id)
-            elif sensor_id == 2:
-                texec.submit(measure_distance, SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value, shared_data, sensor_id)
-            elif sensor_id == 3:
-                texec.submit(measure_distance, SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value, shared_data, sensor_id)
-            elif sensor_id == 4:
-                texec.submit(measure_distance, SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value, shared_data, sensor_id)

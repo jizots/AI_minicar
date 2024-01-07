@@ -11,8 +11,8 @@ pwm.set_pwm_freq(60)
 # moving forward ~371
 # moving backward 390~
 # stop 372~389
-pwm_forward = 310
-pwm_back = 420
+pwm_forward = 325
+pwm_back = 430
 pwm_stop = 380
 strong = 60
 medium = 40
@@ -24,7 +24,7 @@ PULSE_LEFT = 310
 
 D = 0
 sleeping = 0.01
-exec_time = 0.01
+exec_time = 0.2
 
 CHANNEL_ACCEL = 1
 CHANNEL_SENSOR_TRIG = 32
@@ -65,22 +65,22 @@ def measure_the_distance(trig, echo):
     #     print("forward_sensor:ok!\n")
 
 
-def moving_forward(time, power):
+def moving_forward(sleeptime, power):
     print('moving_forward')
     # ====  １秒間まっすぐ進む  ====
     # タイヤを前進方向に回転させる
     pwm.set_pwm(CHANNEL_ACCEL, 0, power)
     # a_sleep秒間続ける
-    time.sleep(time)
+    time.sleep(sleeptime)
 
 
-def moving_backward(time, power):
+def moving_backward(sleeptime, power):
     print('moving_backward')
     # ====  １秒間まっすぐ進む  ====
     # タイヤを前進方向に回転させる
     pwm.set_pwm(CHANNEL_ACCEL, 0, power)
     # a_sleep秒間続ける
-    time.sleep(time)
+    time.sleep(sleeptime)
 
 
 def stop():
@@ -102,7 +102,7 @@ def main():
         else:
             break
     # moving_forward(exec_time, pwm_forward)
-    moving_backward(exec_time, pwm_back)
+    moving_backward(1, pwm_back)
     stop()
     steer.steer_straight(PULSE_STRAIGHT, sleeping)
     GPIO.cleanup()
@@ -118,7 +118,7 @@ def setting(copy_data):
         copy_data[SensorIndex.FL.value] >= 15 and
         copy_data[SensorIndex.FR.value] >= 15
     ):
-        moving_forward(exec_time, pwm_forward + strong)
+        moving_forward(exec_time, pwm_forward)
     elif (
         copy_data[SensorIndex.F.value] >= 15 and
         (
@@ -130,13 +130,13 @@ def setting(copy_data):
             copy_data[SensorIndex.FR.value] >= 5
         )
     ):
-        moving_forward(exec_time, pwm_forward + medium)
+        moving_forward(exec_time, pwm_forward)
     else:
-        moving_backward(exec_time, pwm_back + medium)
+        moving_backward(exec_time, pwm_back)
 
 
 def accel(shared_data):
-    time.sleep(1)  # センサープロセスが先に開始するのを待つ
+    time.sleep(2)  # センサープロセスが先に開始するのを待つ
     copy_data = [0, 0, 0, 0, 0]
     while True:
         copy_data[0] = shared_data[0]  # front_left
@@ -144,10 +144,9 @@ def accel(shared_data):
         copy_data[2] = shared_data[2]  # front_right
         copy_data[3] = shared_data[3]  # left_front
         copy_data[4] = shared_data[4]  # left_back
-        print(f"Steering:{copy_data[0]},\
-            {copy_data[1]},\
-            {copy_data[2]},\
-            {copy_data[3]},\
-            {copy_data[4]}")
-        time.sleep(0.05)
+        # print(f"Accel:{copy_data[0]},\
+        #     {copy_data[1]},\
+        #     {copy_data[2]},\
+        #     {copy_data[3]},\
+        #     {copy_data[4]}")
         setting(copy_data)
