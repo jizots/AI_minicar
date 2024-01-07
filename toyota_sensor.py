@@ -102,13 +102,17 @@ def measure_distance(trig, echo, shared_data, sensor_id):
         time.sleep(0.00001)
         GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
         while GPIO.input(echo) == GPIO.LOW:
+            count += 1
+            count += 1
+            count += 1
+            count += 1
             sigon = time.time()
         while GPIO.input(echo) == GPIO.HIGH:
-            if sensor_id == 4 and count == 15000:
-                print("LOW")
-                count = 0
-            else:
-                count += 1
+            # if sensor_id == 4 and count == 15000:
+            #     print("LOW")
+            #     count = 0
+            # else:
+            #     count += 1
             sigoff = time.time()
         # 距離の計算で大きすぎる数値は無視するVer
         distance = round((sigoff - sigon) * 34000 / 2)
@@ -125,10 +129,10 @@ def measure_distance(trig, echo, shared_data, sensor_id):
         # # 平均値の計算
         # average_distance = sum(distance_array) / len(distance_array)
         # shared_data[sensor_id] = average_distance
-        if sensor_id == 4 and count < 50:
-            count += 1
-        if sensor_id == 4 and count == 50:
-            print(f"sensor_id: {sensor_id} distance: {distance}")
+        # if sensor_id == 4 and count < 30:
+        #     count += 1
+        # if sensor_id == 4 and count == 30:
+        #     print(f"sensor_id: {sensor_id} distance: {distance}")
         #     # print(
         #     #     f" F_L: {shared_data[0]}"
         #     #     f" F : {shared_data[1]}"

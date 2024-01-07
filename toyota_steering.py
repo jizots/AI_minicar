@@ -78,9 +78,9 @@ def steering(shared_data):
         copy_data[SensorIndex.FR.value] = shared_data[2]  # front_right
         copy_data[SensorIndex.L.value] = shared_data[3]  # left
         copy_data[SensorIndex.R.value] = shared_data[4]  # right
-        if count < 10:
+        if count < 2:
             count += 1
-        if count == 10:
+        if count == 2:
             print(f"Steering:{copy_data[SensorIndex.FL.value]}, \
 {copy_data[SensorIndex.F.value]}, \
 {copy_data[SensorIndex.FR.value]}, \
