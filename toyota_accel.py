@@ -113,26 +113,10 @@ if __name__ == "__main__":
 
 
 def setting(copy_data):
-    if (
-        copy_data[SensorIndex.F.value] >= 15 and
-        copy_data[SensorIndex.FL.value] >= 15 and
-        copy_data[SensorIndex.FR.value] >= 15
-    ):
-        moving_forward(exec_time, pwm_forward)
-    elif (
-        copy_data[SensorIndex.F.value] >= 15 and
-        (
-            copy_data[SensorIndex.FL.value] < 15 or
-            copy_data[SensorIndex.FL.value] >= 5
-        ) and
-        (
-            copy_data[SensorIndex.FR.value] < 15 or
-            copy_data[SensorIndex.FR.value] >= 5
-        )
-    ):
+    if (copy_data[SensorIndex.F.value] >= 15):
         moving_forward(exec_time, pwm_forward)
     else:
-        moving_backward(exec_time, pwm_back)
+        stop()
 
 
 def accel(shared_data):
