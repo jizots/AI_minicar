@@ -24,8 +24,6 @@ def init_sensor(trig, echo):
     # GPIOピン番号の指示方法
 	GPIO.setmode(GPIO.BOARD)
 	# 超音波センサ初期設定
-	# print(trig)
-	# print(echo)
 	GPIO.setup(trig,GPIO.OUT, initial=GPIO.LOW)
 	GPIO.setup(echo,GPIO.IN)
 
@@ -35,20 +33,30 @@ def measure_distance(trig, echo, shared_data, sensor_id):
     sigoff = 0
     distance = 0
     while True:
-        GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
-        time.sleep(0.00001)
-        GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
-        while GPIO.input(echo) == GPIO.LOW:
-            sigon = time.time()
-        while GPIO.input(echo) == GPIO.HIGH:
-            sigoff = time.time()
-        # 距離の計算で大きすぎる数値は無視するVer
-        distance = round((sigoff - sigon) * 34000 / 2)
-        if distance <= 900:
-            shared_data[sensor_id] = distance
-        # else:
-        #     shared_data[sensor_id] = 60 # 距離の計算で大きすぎる数値は置き換えるVer
-        time.sleep(0.05)  # 測定の間隔
+        esc_count = 0
+        with lock:
+            GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
+            time.sleep(0.00001)
+            GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
+            while GPIO.input(echo) == GPIO.LOW:
+                sigon = time.time()
+                esc_count += 1
+                if esc_count > 4500:
+                    print("sensor_id: " + str(sensor_id) + " sigon over limit")
+                    break
+            while GPIO.input(echo) == GPIO.HIGH:
+                sigoff = time.time()
+                if esc_count > 4500:
+                    print("esc_count over limit")
+                    break
+        if esc_count <= 4500:
+            # 距離の計算で大きすぎる数値は無視する
+            distance = round((sigoff - sigon) * 34000 / 2)
+            if distance <= 900:
+                shared_data[sensor_id] = distance
+            # else:
+            #     shared_data[sensor_id] = 60 # 距離の計算で大きすぎる数値は置き換えるVer
+            time.sleep(0.05)  # 測定の間隔
 
 
 # main.pyから呼び出される関数
