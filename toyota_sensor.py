@@ -7,6 +7,9 @@ import RPi.GPIO as GPIO #ラズパイのGPIOピンを操作するためのモジ
 # Lockオブジェクトの初期化
 lock = threading.Lock()
 
+# タイムアウトまでの時間（秒）
+timeout_duration = 0.05
+
 # GPIOピン番号を指定。ラズパイのピン番号。列挙体を使ってみた。
 class SensorChannel(Enum):
     TRIG_FL = 15
@@ -27,32 +30,31 @@ def init_sensor(trig, echo):
 	GPIO.setup(trig,GPIO.OUT, initial=GPIO.LOW)
 	GPIO.setup(echo,GPIO.IN)
 
-
 def measure_distance(trig, echo, shared_data, sensor_id):
     sigon = 0
     sigoff = 0
     distance = 0
     while True:
-        esc_count = 0
         with lock:
             GPIO.output(trig, GPIO.HIGH)  # ultrasonicの発信
             time.sleep(0.00001)
             GPIO.output(trig, GPIO.LOW)  # ultrasonicの発信を停止
+            start_time = time.time()
             while GPIO.input(echo) == GPIO.LOW:
                 sigon = time.time()
-                esc_count += 1
-                if esc_count > 4500:
+                if (time.time() - start_time) > timeout_duration:
                     print("sensor_id: " + str(sensor_id) + " sigon over limit")
+                    start_time = 0
                     break
             while GPIO.input(echo) == GPIO.HIGH:
                 sigoff = time.time()
-                if esc_count > 4500:
+                if start_time == 0:
                     print("esc_count over limit")
                     break
-        if esc_count <= 4500:
+        if start_time != 0:
             # 距離の計算で大きすぎる数値は無視する
             distance = round((sigoff - sigon) * 34000 / 2)
-            if distance <= 900:
+            if distance <= 700:
                 shared_data[sensor_id] = distance
             # else:
             #     shared_data[sensor_id] = 60 # 距離の計算で大きすぎる数値は置き換えるVer
