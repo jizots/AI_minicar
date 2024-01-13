@@ -33,48 +33,40 @@ def steer_straight(pulse, sleep_time):
     time.sleep(sleep_time)
 
 def steer_left(pulse, sleep_time):
-    # print('steer_left')
+    print('steer_left')
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
 def steer_right(pulse, sleep_time):
-    # print('steer_right')
+    print('steer_right')
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
 def setting(copy_data):
-    if (copy_data[SensorIndex.F.value] < 25): #前に近い時の緊急の回避行動
-        if (copy_data[SensorIndex.FR.value] > copy_data[SensorIndex.FL.value]):
+    if (copy_data[SensorIndex.FL.value] < 35 or
+        copy_data[SensorIndex.L.value] < 30):
+        if (copy_data[SensorIndex.F.value] < 15):
+            steer_straight(PULSE_STRAIGHT, 0.1)
+        else:
             steer_right(PULSE_RIGHT, 0.1)
-            print("                                                  F!! turn R")
+            steer_straight(PULSE_STRAIGHT, 0.02)
+    elif (copy_data[SensorIndex.FR.value] < 35 or
+        copy_data[SensorIndex.R.value] < 30):
+        if (copy_data[SensorIndex.F.value] < 15):
+            steer_straight(PULSE_STRAIGHT, 0.1)
         else:
             steer_left(PULSE_LEFT, 0.1)
-            print("                                                  F!! turn L")
-    elif (((copy_data[SensorIndex.FL.value] < copy_data[SensorIndex.L.value]) and
-            copy_data[SensorIndex.L.value] < 30) or 
-            (copy_data[SensorIndex.FL.value] < 15)): #壁に近く and 車体が左に傾いている <- 傾いている時の精度は当てに全くならないが大小なら比較できる
-        steer_right(PULSE_RIGHT, 0.1)  #FLが近い時には強制的に曲がる
+            steer_straight(PULSE_STRAIGHT, 0.02)
+    elif ((35 <= copy_data[SensorIndex.FR.value])
+        and (copy_data[SensorIndex.F.value] < (copy_data[SensorIndex.FR.value] / 3 * 2))):
+            steer_right(PULSE_RIGHT_WEEKLY, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.02)
+    elif ((35 <= copy_data[SensorIndex.FL.value])
+        and (copy_data[SensorIndex.F.value] < (copy_data[SensorIndex.FL.value] / 3 * 2))):
+        steer_left(PULSE_LEFT, 0.1)
         steer_straight(PULSE_STRAIGHT, 0.02)
-        print("                                                  R")
-    elif (((copy_data[SensorIndex.FR.value] < copy_data[SensorIndex.R.value]) and
-            copy_data[SensorIndex.R.value] < 30) or 
-            (copy_data[SensorIndex.FR.value] < 15)): #壁に近く and 車体が右に傾いている
-        steer_left(PULSE_LEFT, 0.1)  #FRが近い時には強制的に曲がる
-        steer_straight(PULSE_STRAIGHT, 0.02)
-        print("                                                  L")
-    elif (copy_data[SensorIndex.R.value] > 35 and
-        (copy_data[SensorIndex.FR.value] > copy_data[SensorIndex.R.value])): #右壁から遠ざかりすぎているので近づくように右に曲がる
-        steer_right(PULSE_RIGHT_WEEKLY, 0.1)
-        steer_straight(PULSE_STRAIGHT, 0.02)
-        print("                                                  weak R")
-    elif (copy_data[SensorIndex.R.value] < 10 and
-        (copy_data[SensorIndex.FR.value] > copy_data[SensorIndex.R.value])): #右壁から近すぎているので近づくように左に曲がる
-        steer_left(PULSE_LEFT_WEEKLY, 0.1)
-        steer_straight(PULSE_STRAIGHT, 0.02)
-        print("                                                  weak L")
     else:
         steer_straight(PULSE_STRAIGHT, 0.1)
-        print("                                                  GO")
 
 def steering(shared_data):
     time.sleep(2) # センサープロセスが先に開始するのを待つ
