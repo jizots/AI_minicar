@@ -69,6 +69,12 @@ def sensor(shared_data):
     init_sensor(SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value)
     init_sensor(SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value)
     init_sensor(SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value)
+    shared_data[0] = 0
+    shared_data[1] = 0
+    shared_data[2] = 0
+    shared_data[3] = 0
+    shared_data[4] = 0
+    
 
     # スレッド化して実行
     with ThreadPoolExecutor() as texec:

@@ -9,7 +9,6 @@ pwm.set_pwm_freq(60)
 
 # PCA9685とモーターの接続チャネル番号
 CHANNEL_STEER = 0
-# 元に戻す、のようなものがあるのかわからなかった。荷重してからが本番か。
 # 390, 391を境にモーター回転が反転した。
 # Leftへは最低でも440はないと効かないかも.530以上は試していない。
 # Rightへは最低でも310はないと効かないかも.220以下は試していない。
@@ -43,30 +42,37 @@ def steer_right(pulse, sleep_time):
     time.sleep(sleep_time)
 
 def setting(copy_data):
+    # # Try2用
+    # diff_FR_FL = copy_data[SensorIndex.FR.value] - copy_data[SensorIndex.FL.value] # 値がプラスなら左が近い
+    # Try1用
     if (copy_data[SensorIndex.FL.value] < 35 or
-        copy_data[SensorIndex.L.value] < 30):
-        if (copy_data[SensorIndex.F.value] < 15):
-            steer_straight(PULSE_STRAIGHT, 0.1)
-        else:
-            steer_right(PULSE_RIGHT, 0.1)
-            steer_straight(PULSE_STRAIGHT, 0.02)
+        copy_data[SensorIndex.L.value] < 30): # 左が近すぎる場合の回避
+        steer_right(PULSE_RIGHT, 0.1)
+        steer_straight(PULSE_STRAIGHT, 0.05) # 一気にハンドルを切ると車体が傾くので、少しだけまっすぐにする
     elif (copy_data[SensorIndex.FR.value] < 35 or
-        copy_data[SensorIndex.R.value] < 30):
-        if (copy_data[SensorIndex.F.value] < 15):
-            steer_straight(PULSE_STRAIGHT, 0.1)
-        else:
-            steer_left(PULSE_LEFT, 0.1)
-            steer_straight(PULSE_STRAIGHT, 0.02)
-    elif ((35 <= copy_data[SensorIndex.FR.value])
-        and (copy_data[SensorIndex.F.value] < (copy_data[SensorIndex.FR.value] / 3 * 2))):
-            steer_right(PULSE_RIGHT_WEEKLY, 0.1)
-            steer_straight(PULSE_STRAIGHT, 0.02)
-    elif ((35 <= copy_data[SensorIndex.FL.value])
-        and (copy_data[SensorIndex.F.value] < (copy_data[SensorIndex.FL.value] / 3 * 2))):
+        copy_data[SensorIndex.R.value] < 30):# 右が近すぎる場合の回避
         steer_left(PULSE_LEFT, 0.1)
-        steer_straight(PULSE_STRAIGHT, 0.02)
+        steer_straight(PULSE_STRAIGHT, 0.05)
+    elif (copy_data[SensorIndex.F.value] <
+          (copy_data[SensorIndex.FR.value] / 3 * 2)): # 右前がひらけている時 Try2の場合は以下コメントアウト
+        steer_right(PULSE_RIGHT_WEEKLY, 0.1)
+        steer_straight(PULSE_STRAIGHT, 0.05)
+    elif (copy_data[SensorIndex.F.value] <
+          (copy_data[SensorIndex.FL.value] / 3 * 2)): # 左前がひらけている時
+        steer_left(PULSE_LEFT_WEEKLY, 0.1)
+        steer_straight(PULSE_STRAIGHT, 0.05)
     else:
         steer_straight(PULSE_STRAIGHT, 0.1)
+
+    # # Try2用 
+    # elif (-40 < diff_FR_FL and diff_FR_FL < 40):
+    #     steer_straight(PULSE_STRAIGHT, 0.1)
+    # elif (diff_FR_FL > 0):
+        # steer_right(PULSE_RIGHT_WEEKLY, 0.1)
+    #     steer_straight(PULSE_STRAIGHT, 0.05)
+    # else:
+    #     steer_left(PULSE_LEFT_WEEKLY, 0.1)
+    #     steer_straight(PULSE_STRAIGHT, 0.05)
 
 def steering(shared_data):
     time.sleep(2) # センサープロセスが先に開始するのを待つ
@@ -82,5 +88,4 @@ FL:{copy_data[SensorIndex.FL.value]}, \
 F:{copy_data[SensorIndex.F.value]}, \
 FR:{copy_data[SensorIndex.FR.value]}, \
 R:{copy_data[SensorIndex.R.value]}")
-
         setting(copy_data)
