@@ -54,7 +54,7 @@ def measure_distance(trig, echo, shared_data, sensor_id):
         if start_time != 0:
             # 距離の計算で大きすぎる数値は無視する
             distance = round((sigoff - sigon) * 34000 / 2)
-            if distance <= 700:
+            if distance <= 900:
                 shared_data[sensor_id] = distance
             # else:
             #     shared_data[sensor_id] = 60 # 距離の計算で大きすぎる数値は置き換えるVer
@@ -70,7 +70,7 @@ def sensor(shared_data):
     init_sensor(SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value)
     init_sensor(SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value)
     shared_data[0] = 0
-    shared_data[1] = 0
+    shared_data[1] = 60
     shared_data[2] = 0
     shared_data[3] = 0
     shared_data[4] = 0

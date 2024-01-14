@@ -41,10 +41,12 @@ def stop():
     pwm.set_pwm(CHANNEL_ACCEL, 0, pwm_stop)
 
 def setting(copy_data):
-    if (copy_data[1] >= 15):
+    if (copy_data[1] < 10):
+        stop()
+    elif (copy_data[1] >= 30):
         moving_forward(exec_time, pwm_forward)
     else:
-        stop()
+        moving_backward(1.0, pwm_back)
 
 def accel(shared_data):
     time.sleep(2)  # センサープロセスが先に開始するのを待つ
