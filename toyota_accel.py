@@ -10,8 +10,8 @@ pwm.set_pwm_freq(60)
 # moving forward ~371
 # moving backward 390~
 # stop 372~389
-pwm_forward = 322
-pwm_back = 430
+pwm_forward = 319
+pwm_back = 440
 pwm_stop = 380
 
 # 前進、後進の1回の継続時間
@@ -41,10 +41,12 @@ def stop():
     pwm.set_pwm(CHANNEL_ACCEL, 0, pwm_stop)
 
 def setting(copy_data):
-    if (copy_data[1] >= 15):
+    if (copy_data[1] < 10):
+        stop()
+    elif (copy_data[1] >= 25):
         moving_forward(exec_time, pwm_forward)
     else:
-        stop()
+        moving_backward(1.0, pwm_back)
 
 def accel(shared_data):
     time.sleep(2)  # センサープロセスが先に開始するのを待つ
