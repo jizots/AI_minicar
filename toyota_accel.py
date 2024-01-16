@@ -10,7 +10,7 @@ pwm.set_pwm_freq(60)
 # moving forward ~371
 # moving backward 390~
 # stop 372~389
-pwm_forward = 319
+pwm_forward = 316
 pwm_back = 440
 pwm_stop = 380
 

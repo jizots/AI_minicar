@@ -14,7 +14,7 @@ CHANNEL_STEER = 0
 # Rightへは最低でも310はないと効かないかも.220以下は試していない。
 PULSE_STRAIGHT = 390
 PULSE_LEFT = 490
-PULSE_LEFT_WEEKLY = 450
+PULSE_LEFT_WEEKLY = 445
 PULSE_RIGHT = 285
 PULSE_RIGHT_WEEKLY = 320
 
@@ -41,33 +41,35 @@ def steer_right(pulse, sleep_time):
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
-def setting(copy_data):
-    if (copy_data[SensorIndex.F.value] < 65): # 前が近すぎる場合の回避
+def setting(copy_data): #右壁に寄せて走るプログラム
+    if (copy_data[SensorIndex.F.value] < 68): # 前が近すぎる場合の回避
         if (copy_data[SensorIndex.FR.value] < copy_data[SensorIndex.FL.value]): # 左がひらけている時
-            steer_left(PULSE_LEFT, 0.1)
+            steer_left(PULSE_LEFT, 0.12)
             steer_straight(PULSE_STRAIGHT, 0.1)
         else: # 右がひらけている時
+            steer_right(PULSE_RIGHT, 0.12)
+            steer_straight(PULSE_STRAIGHT, 0.1)
+    elif (copy_data[SensorIndex.L.value] < 15 or copy_data[SensorIndex.FL.value] < 15): # 左壁に近すぎる
+        steer_left(PULSE_RIGHT_WEEKLY, 0.1)
+        steer_straight(PULSE_STRAIGHT, 0.1)
+    elif (copy_data[SensorIndex.R.value] < 10 or copy_data[SensorIndex.FR.value] < 10): # 右壁に近すぎる
+        steer_left(PULSE_LEFT, 0.1)
+        steer_straight(PULSE_STRAIGHT, 0.1)
+    elif (copy_data[SensorIndex.R.value] < 17 or copy_data[SensorIndex.FR.value] < 17): # 右壁に近すぎる
+        steer_left(PULSE_LEFT_WEEKLY, 0.1)
+        steer_straight(PULSE_STRAIGHT, 0.1)
+    elif (copy_data[SensorIndex.F.value] >= 65):
+        if (copy_data[SensorIndex.FR.value] > 50 or copy_data[SensorIndex.R.value] > 50): #右壁から離れている
             steer_right(PULSE_RIGHT, 0.1)
             steer_straight(PULSE_STRAIGHT, 0.1)
-    elif (copy_data[SensorIndex.FL.value] < 40 or
-        copy_data[SensorIndex.L.value] < 30): # 左が近すぎる場合の回避
-        steer_right(PULSE_RIGHT, 0.15)
-        steer_straight(PULSE_STRAIGHT, 0.05)
-    elif (copy_data[SensorIndex.FR.value] < 40 or
-        copy_data[SensorIndex.R.value] < 30):# 右が近すぎる場合の回避
-        steer_left(PULSE_LEFT, 0.15)
-        steer_straight(PULSE_STRAIGHT, 0.05)
-    elif (copy_data[SensorIndex.F.value > 80]):
-        steer_straight(PULSE_STRAIGHT, 0.1)
-    elif (copy_data[SensorIndex.F.value] <
-          (copy_data[SensorIndex.FR.value])): # 右前がひらけている時 Try2の場合は以下コメントアウト
-        steer_right(PULSE_RIGHT_WEEKLY, 0.15)
-        steer_straight(PULSE_STRAIGHT, 0.1)
-    elif (copy_data[SensorIndex.F.value] <
-          (copy_data[SensorIndex.FL.value])): # 左前がひらけている時
-        steer_left(PULSE_LEFT_WEEKLY, 0.15)
+        elif (copy_data[SensorIndex.FR.value] > 30 or copy_data[SensorIndex.R.value] > 30): #右壁から離れている
+            steer_right(PULSE_RIGHT_WEEKLY, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.1)
+    elif (copy_data[SensorIndex.FR.value] > copy_data[SensorIndex.R.value]): # 車体が左前に傾いている
+        steer_right(PULSE_RIGHT_WEEKLY, 0.1)
         steer_straight(PULSE_STRAIGHT, 0.1)
     else:
+        steer_left(PULSE_LEFT_WEEKLY, 0.1)
         steer_straight(PULSE_STRAIGHT, 0.1)
 
 def steering(shared_data):
