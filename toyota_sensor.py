@@ -46,11 +46,9 @@ def measure_distance(trig, echo, shared_data, sensor_id):
                     print("sensor_id: " + str(sensor_id) + " sigon over limit")
                     start_time = 0
                     break
-            while GPIO.input(echo) == GPIO.HIGH:
-                sigoff = time.time()
-                if start_time == 0:
-                    print("esc_count over limit")
-                    break
+            if start_time != 0:
+                while GPIO.input(echo) == GPIO.HIGH:
+                    sigoff = time.time()
         if start_time != 0:
             # 距離の計算で大きすぎる数値は無視する
             distance = round((sigoff - sigon) * 34000 / 2)

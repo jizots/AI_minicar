@@ -11,7 +11,7 @@ pwm.set_pwm_freq(60)
 # moving backward 390~
 # stop 372~389
 pwm_forward = 319
-pwm_back = 430
+pwm_back = 440
 pwm_stop = 380
 
 # 前進、後進の1回の継続時間
@@ -43,7 +43,7 @@ def stop():
 def setting(copy_data):
     if (copy_data[1] < 10):
         stop()
-    elif (copy_data[1] >= 30):
+    elif (copy_data[1] >= 25):
         moving_forward(exec_time, pwm_forward)
     else:
         moving_backward(1.0, pwm_back)
