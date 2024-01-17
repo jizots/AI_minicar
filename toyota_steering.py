@@ -57,16 +57,16 @@ def setting(copy_data):
         copy_data[SensorIndex.R.value] < 30):# 右が近すぎる場合の回避
         steer_left(PULSE_LEFT, 0.15)
         steer_straight(PULSE_STRAIGHT, 0.05)
-    elif (copy_data[SensorIndex.F.value > 80]):
-        steer_straight(PULSE_STRAIGHT, 0.1)
+    # elif (copy_data[SensorIndex.F.value > 80]):
+    #     steer_straight(PULSE_STRAIGHT, 0.1)
     elif (copy_data[SensorIndex.F.value] <
           (copy_data[SensorIndex.FR.value])): # 右前がひらけている時 Try2の場合は以下コメントアウト
         steer_right(PULSE_RIGHT_WEEKLY, 0.15)
-        steer_straight(PULSE_STRAIGHT, 0.1)
+        # steer_straight(PULSE_STRAIGHT, 0.1)
     elif (copy_data[SensorIndex.F.value] <
           (copy_data[SensorIndex.FL.value])): # 左前がひらけている時
         steer_left(PULSE_LEFT_WEEKLY, 0.15)
-        steer_straight(PULSE_STRAIGHT, 0.1)
+        # steer_straight(PULSE_STRAIGHT, 0.1)
     else:
         steer_straight(PULSE_STRAIGHT, 0.1)
 
