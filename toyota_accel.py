@@ -2,6 +2,8 @@ import time
 import RPi.GPIO as GPIO  # ラズパイのGPIOピンを操作するためのモジュール
 import Adafruit_PCA9685
 import toyota_steering as steer
+import signal
+import sys
 
 pwm = Adafruit_PCA9685.PCA9685(address=0x40, busnum=1)
 pwm.set_pwm_freq(60)
@@ -49,12 +51,24 @@ def setting(copy_data):
         moving_backward(1.0, pwm_back)
 
 def accel(shared_data):
+    def signal_handler(sig, frame):
+        print("Stop accel")
+        stop()
+        GPIO.cleanup()
+        sys.exit(0)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     time.sleep(2)  # センサープロセスが先に開始するのを待つ
     copy_data = [0, 0, 0, 0, 0]
-    while True:
-        copy_data[0] = shared_data[0]  # front_left
-        copy_data[1] = shared_data[1]  # front
-        copy_data[2] = shared_data[2]  # front_right
-        copy_data[3] = shared_data[3]  # left_front
-        copy_data[4] = shared_data[4]  # left_back
-        setting(copy_data)
+
+    try:
+        while True:
+            copy_data[0] = shared_data[0]  # front_left
+            copy_data[1] = shared_data[1]  # front
+            copy_data[2] = shared_data[2]  # front_right
+            copy_data[3] = shared_data[3]  # left_front
+            copy_data[4] = shared_data[4]  # left_back
+            setting(copy_data)
+    except KeyboardInterrupt:
+        stop()
+        GPIO.cleanup()

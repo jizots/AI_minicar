@@ -1,6 +1,8 @@
 import Adafruit_PCA9685
 import time
 from enum import Enum
+import signal
+import sys
 
 # ラズパイから見たPCA9685の所在地の設定
 pwm = Adafruit_PCA9685.PCA9685(address=0x40, busnum=1)
@@ -73,17 +75,29 @@ def setting(copy_data): #右壁に寄せて走るプログラム
         steer_straight(PULSE_STRAIGHT, 0.1)
 
 def steering(shared_data):
+    def signal_handler(sig, frame):
+        print("Stop steering")
+        steer_straight(PULSE_STRAIGHT, 0.1)
+        sys.exit(0)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     time.sleep(2) # センサープロセスが先に開始するのを待つ
     copy_data = [0,0,0,0,0]
-    while True:
-        copy_data[SensorIndex.FL.value] = shared_data[0]
-        copy_data[SensorIndex.F.value] = shared_data[1]
-        copy_data[SensorIndex.FR.value] = shared_data[2]
-        copy_data[SensorIndex.L.value] = shared_data[3]
-        copy_data[SensorIndex.R.value] = shared_data[4]
-        print(f"Steering: L:{copy_data[SensorIndex.L.value]}, \
+
+    try:
+        while True:
+            copy_data[SensorIndex.FL.value] = shared_data[0]
+            copy_data[SensorIndex.F.value] = shared_data[1]
+            copy_data[SensorIndex.FR.value] = shared_data[2]
+            copy_data[SensorIndex.L.value] = shared_data[3]
+            copy_data[SensorIndex.R.value] = shared_data[4]
+            print(f"Steering: L:{copy_data[SensorIndex.L.value]}, \
 FL:{copy_data[SensorIndex.FL.value]}, \
 F:{copy_data[SensorIndex.F.value]}, \
 FR:{copy_data[SensorIndex.FR.value]}, \
 R:{copy_data[SensorIndex.R.value]}")
-        setting(copy_data)
+            setting(copy_data)
+
+    except KeyboardInterrupt:
+        steer_straight(PULSE_STRAIGHT, 0.1)
+

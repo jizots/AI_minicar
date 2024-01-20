@@ -3,6 +3,8 @@ from enum import Enum
 import time
 import threading
 import RPi.GPIO as GPIO #ラズパイのGPIOピンを操作するためのモジュール
+import signal
+import sys
 
 # Lockオブジェクトの初期化
 lock = threading.Lock()
@@ -61,6 +63,12 @@ def measure_distance(trig, echo, shared_data, sensor_id):
 
 # main.pyから呼び出される関数
 def sensor(shared_data):
+    def signal_handler(sig, frame):
+        print("Stop sensor")
+        GPIO.cleanup()
+        sys.exit(0)
+    signal.signal(signal.SIGTERM, signal_handler)
+
     # センサーの初期設定
     init_sensor(SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value)
     init_sensor(SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value)
@@ -73,20 +81,22 @@ def sensor(shared_data):
     shared_data[3] = 60
     shared_data[4] = 60
     
-
     # スレッド化して実行
-    with ThreadPoolExecutor() as texec:
-        for sensor_id in range(5):
-            if sensor_id == 0:
-                texec.submit(measure_distance, SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value, shared_data, sensor_id)
-            elif sensor_id == 1:
-                texec.submit(measure_distance, SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value, shared_data, sensor_id)
-            elif sensor_id == 2:
-                texec.submit(measure_distance, SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value, shared_data, sensor_id)
-            elif sensor_id == 3:
-                texec.submit(measure_distance, SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value, shared_data, sensor_id)
-            elif sensor_id == 4:
-                texec.submit(measure_distance, SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value, shared_data, sensor_id)
+    try:
+        with ThreadPoolExecutor() as texec:
+            for sensor_id in range(5):
+                if sensor_id == 0:
+                    texec.submit(measure_distance, SensorChannel.TRIG_FL.value, SensorChannel.ECHO_FL.value, shared_data, sensor_id)
+                elif sensor_id == 1:
+                    texec.submit(measure_distance, SensorChannel.TRIG_F.value, SensorChannel.ECHO_F.value, shared_data, sensor_id)
+                elif sensor_id == 2:
+                    texec.submit(measure_distance, SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value, shared_data, sensor_id)
+                elif sensor_id == 3:
+                    texec.submit(measure_distance, SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value, shared_data, sensor_id)
+                elif sensor_id == 4:
+                    texec.submit(measure_distance, SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value, shared_data, sensor_id)
+    except KeyboardInterrupt:
+        GPIO.cleanup()
 
 
 ### ここからプログラム単体テスト用
