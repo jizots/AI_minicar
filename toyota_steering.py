@@ -87,7 +87,7 @@ def setting(copy_data): #右壁に寄せて走るプログラム
                 steer_straight(PULSE_STRAIGHT, 0.1)
     elif (copy_data[SensorIndex.FL.value] < 20 or copy_data[SensorIndex.L.value] < 20): # 左壁に近すぎる
         count_left = 0
-        count_right = 0
+        count_left_weekly = 0
         if (copy_data[SensorIndex.FL.value] < 15 or copy_data[SensorIndex.L.value] < 15):
             print("Right")
             steer_right(PULSE_RIGHT, 0.1)
@@ -100,6 +100,8 @@ def setting(copy_data): #右壁に寄せて走るプログラム
         print("Left")
         count_left += 1
         count_right = 0
+        count_left_weekly = 0
+        count_right_weekly = 0
         if (count_left > 2):
             print("Cancel Left")
             steer_straight(PULSE_STRAIGHT, 0.05)
@@ -124,6 +126,8 @@ def setting(copy_data): #右壁に寄せて走るプログラム
         print("Right")
         count_right += 1
         count_left = 0
+        count_left_weekly = 0
+        count_right_weekly = 0
         if (count_right > 2 and copy_data[SensorIndex.R.value] < 70):
             print("Cancel Right")
             steer_straight(PULSE_STRAIGHT, 0.05)
@@ -133,16 +137,17 @@ def setting(copy_data): #右壁に寄せて走るプログラム
             steer_straight(PULSE_STRAIGHT, 0.08)
     elif (copy_data[SensorIndex.FR.value] > 30 and copy_data[SensorIndex.R.value] > 20): #右壁から離れている
         print("Right weekly")
+        count_right_weekly += 1
         count_left = 0
         count_right = 0
-        count_right_weekly += 1
+        count_left_weekly = 0
         if (count_right_weekly > 2):
             print("Cancel Right weekly")
-            steer_right(PULSE_RIGHT_WEEKLY, 0.1)
-            steer_straight(PULSE_STRAIGHT, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.05)
             count_right_weekly = 0
         else:
-            steer_straight(PULSE_STRAIGHT, 0.05)
+            steer_right(PULSE_RIGHT_WEEKLY, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.1)
     else:
         print("Straight")
         count_left = 0
