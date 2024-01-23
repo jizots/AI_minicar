@@ -14,11 +14,11 @@ CHANNEL_STEER = 0
 # 390, 391を境にモーター回転が反転した。
 # Leftへは最低でも440はないと効かないかも.530以上は試していない。
 # Rightへは最低でも310はないと効かないかも.220以下は試していない。
-PULSE_STRAIGHT = 390
+PULSE_STRAIGHT = 387
 PULSE_LEFT = 490
 PULSE_LEFT_WEEKLY = 445
-PULSE_RIGHT = 285
-PULSE_RIGHT_WEEKLY = 320
+PULSE_RIGHT = 280
+PULSE_RIGHT_WEEKLY = 310
 
 # shared_dataのインデントとセンサーの関係性をわかりやすくする用
 class SensorIndex(Enum):
@@ -28,51 +28,116 @@ class SensorIndex(Enum):
     L = 3
     R = 4
 
+# Leftには2回連続しか曲がらないようにするためのカウンター
+count_left = 0
+# Rightには2回連続しか曲がらないようにするためのカウンター
+count_right = 0
+# Right_weeklyには2回連続しか曲がらないようにするためのカウンター
+count_right_weekly = 0
+# Left_weeklyには2回連続しか曲がらないようにするためのカウンター
+count_left_weekly = 0
+
 def steer_straight(pulse, sleep_time):
     # print('steer_straight')
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
 def steer_left(pulse, sleep_time):
-    print('steer_left')
+    # print('steer_left')
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
 def steer_right(pulse, sleep_time):
-    print('steer_right')
+    # print('steer_right')
     pwm.set_pwm(CHANNEL_STEER, 0, pulse)
     time.sleep(sleep_time)
 
 def setting(copy_data): #右壁に寄せて走るプログラム
-    if (copy_data[SensorIndex.F.value] < 68): # 前が近すぎる場合の回避
+    global count_left
+    global count_right
+    global count_right_weekly
+    global count_left_weekly
+    if (copy_data[SensorIndex.F.value] < 55): # 前が近すぎる場合の回避
         if (copy_data[SensorIndex.FR.value] < copy_data[SensorIndex.FL.value]): # 左がひらけている時
-            steer_left(PULSE_LEFT, 0.12)
-            steer_straight(PULSE_STRAIGHT, 0.1)
+            print("Left")
+            count_left += 1
+            count_right = 0
+            if (count_left > 2):
+                print("Cancel Left")
+                steer_straight(PULSE_STRAIGHT, 0.5)
+                count_left = 0
+            else:
+                steer_left(PULSE_LEFT, 0.1)
+                steer_straight(PULSE_STRAIGHT, 0.1)
         else: # 右がひらけている時
-            steer_right(PULSE_RIGHT, 0.12)
-            steer_straight(PULSE_STRAIGHT, 0.1)
-    elif (copy_data[SensorIndex.L.value] < 15 or copy_data[SensorIndex.FL.value] < 15): # 左壁に近すぎる
-        steer_left(PULSE_RIGHT_WEEKLY, 0.1)
-        steer_straight(PULSE_STRAIGHT, 0.1)
-    elif (copy_data[SensorIndex.R.value] < 10 or copy_data[SensorIndex.FR.value] < 10): # 右壁に近すぎる
-        steer_left(PULSE_LEFT, 0.1)
-        steer_straight(PULSE_STRAIGHT, 0.1)
-    elif (copy_data[SensorIndex.R.value] < 17 or copy_data[SensorIndex.FR.value] < 17): # 右壁に近すぎる
-        steer_left(PULSE_LEFT_WEEKLY, 0.1)
-        steer_straight(PULSE_STRAIGHT, 0.1)
-    elif (copy_data[SensorIndex.F.value] >= 65):
-        if (copy_data[SensorIndex.FR.value] > 50 or copy_data[SensorIndex.R.value] > 50): #右壁から離れている
-            steer_right(PULSE_RIGHT, 0.1)
-            steer_straight(PULSE_STRAIGHT, 0.1)
-        elif (copy_data[SensorIndex.FR.value] > 30 or copy_data[SensorIndex.R.value] > 30): #右壁から離れている
-            steer_right(PULSE_RIGHT_WEEKLY, 0.1)
-            steer_straight(PULSE_STRAIGHT, 0.1)
-    elif (copy_data[SensorIndex.FR.value] > copy_data[SensorIndex.R.value]): # 車体が左前に傾いている
+            print("Right")
+            count_right += 1
+            count_left = 0
+            if (count_right > 2 and copy_data[SensorIndex.R.value] < 70):
+                print("Cancel Right")
+                steer_left(PULSE_LEFT_WEEKLY, 0.05)
+                steer_straight(PULSE_STRAIGHT, 0.05)
+                count_right = 0
+            else:
+                steer_right(PULSE_RIGHT, 0.1)
+                steer_straight(PULSE_STRAIGHT, 0.1)
+    elif (copy_data[SensorIndex.FL.value] < 15 or copy_data[SensorIndex.L.value] < 15): # 左壁に近すぎる
+        print("Right weekly")
+        count_left = 0
+        count_right = 0
         steer_right(PULSE_RIGHT_WEEKLY, 0.1)
         steer_straight(PULSE_STRAIGHT, 0.1)
+    elif (copy_data[SensorIndex.FR.value] < 22 or copy_data[SensorIndex.R.value] < 5): # 右壁に近すぎる
+        print("Left")
+        count_left += 1
+        count_right = 0
+        if (count_left > 2):
+            print("Cancel Left")
+            steer_straight(PULSE_STRAIGHT, 0.05)
+            count_left = 0
+        else:
+            steer_left(PULSE_LEFT, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.1)
+    elif (copy_data[SensorIndex.R.value] < 15): # 右壁に近すぎる
+        print("Left weekly")
+        count_left_weekly += 1
+        if (count_left_weekly > 2):
+            print("Cancel Left weekly")
+            steer_straight(PULSE_STRAIGHT, 0.05)
+            count_left_weekly = 0
+        else:
+            steer_left(PULSE_LEFT_WEEKLY, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.1)
+    elif (copy_data[SensorIndex.FR.value] > 40 and copy_data[SensorIndex.R.value] > 30): #右壁から離れている
+        print("Right")
+        count_right += 1
+        count_left = 0
+        if (count_right > 2 and copy_data[SensorIndex.R.value] < 70):
+            print("Cancel Right")
+            steer_straight(PULSE_STRAIGHT, 0.05)
+            count_right = 0
+        else:
+            steer_right(PULSE_RIGHT, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.08)
+    elif (copy_data[SensorIndex.FR.value] > 30 and copy_data[SensorIndex.R.value] > 20): #右壁から離れている
+        print("Right weekly")
+        count_left = 0
+        count_right = 0
+        count_right_weekly += 1
+        if (count_right_weekly > 2):
+            print("Cancel Right weekly")
+            steer_right(PULSE_RIGHT_WEEKLY, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.1)
+            count_right_weekly = 0
+        else:
+            steer_straight(PULSE_STRAIGHT, 0.05)
     else:
-        steer_left(PULSE_LEFT_WEEKLY, 0.1)
-        steer_straight(PULSE_STRAIGHT, 0.1)
+        print("Straight")
+        steer_straight(PULSE_STRAIGHT, 0.05)
+    # elif (copy_data[SensorIndex.FR.value] > copy_data[SensorIndex.R.value]): # 車体が左前に傾いている
+    #     print("Right weekly")
+    #     steer_right(PULSE_RIGHT_WEEKLY, 0.1)
+    #     steer_straight(PULSE_STRAIGHT, 0.1)
 
 def steering(shared_data):
     def signal_handler(sig, frame):

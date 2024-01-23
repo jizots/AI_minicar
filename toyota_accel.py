@@ -12,8 +12,8 @@ pwm.set_pwm_freq(60)
 # moving forward ~371
 # moving backward 390~
 # stop 372~389
-pwm_forward = 316
-pwm_back = 440
+pwm_forward = 313
+pwm_back = 460
 pwm_stop = 380
 
 # 前進、後進の1回の継続時間
@@ -43,12 +43,10 @@ def stop():
     pwm.set_pwm(CHANNEL_ACCEL, 0, pwm_stop)
 
 def setting(copy_data):
-    if (copy_data[1] < 10):
-        stop()
+    if (copy_data[1] < 25):
+        moving_backward(1.0, pwm_back)
     elif (copy_data[1] >= 25):
         moving_forward(exec_time, pwm_forward)
-    else:
-        moving_backward(1.0, pwm_back)
 
 def accel(shared_data):
     def signal_handler(sig, frame):

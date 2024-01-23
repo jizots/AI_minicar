@@ -10,7 +10,7 @@ import sys
 lock = threading.Lock()
 
 # タイムアウトまでの時間（秒）
-timeout_duration = 0.05
+timeout_duration = 0.03
 
 # GPIOピン番号を指定。ラズパイのピン番号。列挙体を使ってみた。
 class SensorChannel(Enum):
