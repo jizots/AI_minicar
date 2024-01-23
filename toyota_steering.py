@@ -18,6 +18,16 @@ PULSE_LEFT_WEEKLY = 450
 PULSE_RIGHT = 285
 PULSE_RIGHT_WEEKLY = 320
 
+# Leftには2回連続しか曲がらないようにするためのカウンター
+count_left = 0
+# Rightには2回連続しか曲がらないようにするためのカウンター
+count_right = 0
+# Right_weeklyには2回連続しか曲がらないようにするためのカウンター
+count_right_weekly = 0
+# Left_weeklyには2回連続しか曲がらないようにするためのカウンター
+count_left_weekly = 0
+
+
 # shared_dataのインデントとセンサーの関係性をわかりやすくする用
 class SensorIndex(Enum):
     FL = 0
@@ -42,21 +52,45 @@ def steer_right(pulse, sleep_time):
     time.sleep(sleep_time)
 
 def setting(copy_data):
+    global count_left
+    global count_right
+    global count_right_weekly
+    global count_left_weekly
     if (copy_data[SensorIndex.F.value] < 65): # 前が近すぎる場合の回避
         if (copy_data[SensorIndex.FR.value] < copy_data[SensorIndex.FL.value]): # 左がひらけている時
-            steer_left(PULSE_LEFT, 0.1)
-            steer_straight(PULSE_STRAIGHT, 0.1)
+            count_left += 1
+            if (count_left > 2):
+                count_left = 0
+                steer_straight(PULSE_STRAIGHT, 0.1)
+            else:
+                steer_left(PULSE_LEFT, 0.1)
+                steer_straight(PULSE_STRAIGHT, 0.1)
         else: # 右がひらけている時
-            steer_right(PULSE_RIGHT, 0.1)
-            steer_straight(PULSE_STRAIGHT, 0.1)
+            count_right += 1
+            if (count_right > 2):
+                count_right = 0
+                steer_straight(PULSE_STRAIGHT, 0.1)
+            else:
+                steer_right(PULSE_RIGHT, 0.1)
+                steer_straight(PULSE_STRAIGHT, 0.1)
     elif (copy_data[SensorIndex.FL.value] < 40 or
         copy_data[SensorIndex.L.value] < 30): # 左が近すぎる場合の回避
-        steer_right(PULSE_RIGHT, 0.15)
-        steer_straight(PULSE_STRAIGHT, 0.05)
+        count_right += 1
+        if (count_right > 2):
+            count_right = 0
+            steer_straight(PULSE_STRAIGHT, 0.1)
+        else:
+            steer_right(PULSE_RIGHT, 0.10)
+            steer_straight(PULSE_STRAIGHT, 0.1)
     elif (copy_data[SensorIndex.FR.value] < 40 or
         copy_data[SensorIndex.R.value] < 30):# 右が近すぎる場合の回避
-        steer_left(PULSE_LEFT, 0.15)
-        steer_straight(PULSE_STRAIGHT, 0.05)
+        count_left += 1
+        if (count_left > 2):
+            count_left = 0
+            steer_straight(PULSE_STRAIGHT, 0.1)
+        else:
+            steer_left(PULSE_LEFT, 0.1)
+            steer_straight(PULSE_STRAIGHT, 0.1)
     # elif (copy_data[SensorIndex.F.value > 80]):
     #     steer_straight(PULSE_STRAIGHT, 0.1)
     elif (copy_data[SensorIndex.F.value] <
