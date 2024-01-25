@@ -66,7 +66,7 @@ def setting(copy_data): #右壁に寄せて走るプログラム
             count_right_weekly = 0
             if (count_left > 2):
                 print("Cancel Left")
-                steer_straight(PULSE_STRAIGHT, 0.5)
+                steer_straight(PULSE_STRAIGHT, 0.05)
                 count_left = 0
             else:
                 steer_left(PULSE_LEFT, 0.1)
