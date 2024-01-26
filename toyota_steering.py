@@ -35,7 +35,7 @@ count_right_weekly = 0
 count_left_weekly = 0
 
 # PULSE_STRAIGHTの継続時間
-STRAIGHT_TIME = 0.05
+STRAIGHT_TIME = 0.03
 # PULSE_RIGHTの継続時間
 RIGHT_TIME = 0.1
 # PULSE_LEFTの継続時間
@@ -44,11 +44,11 @@ LEFT_TIME = 0.1
 RESET_TIME = 0.1
 
 # PULSE_RIGHT_WEEKLYの継続時間
-RIGHT_WEEKLY_TIME = 0.1
+RIGHT_WEEKLY_TIME = 0.08
 # PULSE_LEFT_WEEKLYの継続時間
-LEFT_WEEKLY_TIME = 0.1
+LEFT_WEEKLY_TIME = 0.08
 # Week_Right, Week_LeftとセットになるSTRAIGHTの継続時間
-RESET_WEEKLY_TIME = 0.1
+RESET_WEEKLY_TIME = 0.08
 
 def steer_straight(pulse, sleep_time):
     # print('steer_straight')
@@ -98,10 +98,10 @@ def setting(copy_data): #右壁に寄せて走るプログラム
             else:
                 steer_right(PULSE_RIGHT, RIGHT_TIME)
                 steer_straight(PULSE_STRAIGHT, RESET_TIME)
-    elif (copy_data[SensorIndex.FL.value] < 20 or copy_data[SensorIndex.L.value] < 20): # 左壁に近すぎる
+    elif (copy_data[SensorIndex.FL.value] < 25 or copy_data[SensorIndex.L.value] < 25): # 左壁に近すぎる
         count_left = 0
         count_left_weekly = 0
-        if (copy_data[SensorIndex.FL.value] < 15 or copy_data[SensorIndex.L.value] < 15):
+        if (copy_data[SensorIndex.FL.value] < 18 or copy_data[SensorIndex.L.value] < 18):
             print("Right")
             steer_right(PULSE_RIGHT, RIGHT_TIME)
             steer_straight(PULSE_STRAIGHT, RESET_TIME)
@@ -115,7 +115,7 @@ def setting(copy_data): #右壁に寄せて走るプログラム
         count_right = 0
         count_left_weekly = 0
         count_right_weekly = 0
-        if (count_left > 2):
+        if (count_left > 2 and copy_data[SensorIndex.R.value] > 4):
             print("Cancel Left")
             steer_straight(PULSE_STRAIGHT, STRAIGHT_TIME)
             count_left = 0
