@@ -50,12 +50,11 @@ def measure_distance(trig, echo, shared_data, sensor_id):
                 while GPIO.input(echo) == GPIO.HIGH:
                     sigoff = time.time()
         if start_time != 0:
-            # 距離の計算で大きすぎる数値は無視する
             distance = round((sigoff - sigon) * 34000 / 2)
             if distance <= 900:
                 shared_data[sensor_id] = distance
             else:
-                shared_data[sensor_id] = 200 # 距離の計算で大きすぎる数値は置き換えるVer
+                shared_data[sensor_id] = 200 # 距離の計算で大きすぎる数値は置き換える
             time.sleep(0.05)  # 測定の間隔
 
 
@@ -67,12 +66,12 @@ def sensor(shared_data):
     init_sensor(SensorChannel.TRIG_FR.value, SensorChannel.ECHO_FR.value)
     init_sensor(SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value)
     init_sensor(SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value)
+    # 共有データの初期化
     shared_data[0] = 60
     shared_data[1] = 60
     shared_data[2] = 60
     shared_data[3] = 60
     shared_data[4] = 60
-    
 
     # スレッド化して実行
     with ThreadPoolExecutor() as texec:
@@ -87,63 +86,3 @@ def sensor(shared_data):
                 texec.submit(measure_distance, SensorChannel.TRIG_L.value, SensorChannel.ECHO_L.value, shared_data, sensor_id)
             elif sensor_id == 4:
                 texec.submit(measure_distance, SensorChannel.TRIG_R.value, SensorChannel.ECHO_R.value, shared_data, sensor_id)
-
-
-### ここからプログラム単体テスト用
-D = 0
-CHANNEL_SENSOR_TRIG_FL = 15
-CHANNEL_SENSOR_ECHO_FL = 26
-CHANNEL_SENSOR_TRIG_F = 13
-CHANNEL_SENSOR_ECHO_F = 24
-CHANNEL_SENSOR_TRIG_FR = 32
-CHANNEL_SENSOR_ECHO_FR = 31
-CHANNEL_SENSOR_TRIG_L = 37
-CHANNEL_SENSOR_ECHO_L = 40
-CHANNEL_SENSOR_TRIG_R = 33
-CHANNEL_SENSOR_ECHO_R = 36
-
-def measure_the_distance(trig, echo):
-    global D
-    sigon = 0 #Echoピンの電圧が0V→3.3Vに変わった時間を記録する変数
-    sigoff = 0 #Echoピンの電圧が3.3V→0Vに変わった時間を記録する変数
-    GPIO.output(trig, GPIO.HIGH) #Trigピンの電圧をHIGH(3.3V)にする
-    time.sleep(0.00001) #10μs待つ
-    GPIO.output(trig, GPIO.LOW) #Trigピンの電圧をLOW(0V)にする
-    while(GPIO.input(echo) == GPIO.LOW):
-            sigon=time.time() #Echoピンの電圧がHIGH(3.3V)になるまで、sigonを更新
-    while(GPIO.input(echo) == GPIO.HIGH):
-            sigoff=time.time() #Echoピンの電圧がLOW(0V)になるまで、sigoffを更新
-    D = (sigoff - sigon)*34000/2 #距離を計算(単位はcm)
-    if echo == CHANNEL_SENSOR_ECHO_FL:
-        print("FL")
-    elif echo == CHANNEL_SENSOR_ECHO_F:
-        print("F")
-    elif echo == CHANNEL_SENSOR_ECHO_FR:
-        print("FR")
-    elif echo == CHANNEL_SENSOR_ECHO_L:
-        print("L")
-    elif echo == CHANNEL_SENSOR_ECHO_R:
-        print("R")
-    print(D)
-#       if d > 200:
-#               print("forward_sensor:ok!\n")
-    time.sleep(1)
-
-def main():
-    print("Test mode")
-    init_sensor(CHANNEL_SENSOR_TRIG_FL, CHANNEL_SENSOR_ECHO_FL)
-    init_sensor(CHANNEL_SENSOR_TRIG_F, CHANNEL_SENSOR_ECHO_F)
-    init_sensor(CHANNEL_SENSOR_TRIG_FR, CHANNEL_SENSOR_ECHO_FR)
-    init_sensor(CHANNEL_SENSOR_TRIG_L, CHANNEL_SENSOR_ECHO_L)
-    init_sensor(CHANNEL_SENSOR_TRIG_R, CHANNEL_SENSOR_ECHO_R)
-    while True:
-        measure_the_distance(CHANNEL_SENSOR_TRIG_FL, CHANNEL_SENSOR_ECHO_FL)
-        measure_the_distance(CHANNEL_SENSOR_TRIG_F, CHANNEL_SENSOR_ECHO_F)
-        measure_the_distance(CHANNEL_SENSOR_TRIG_FR, CHANNEL_SENSOR_ECHO_FR)
-        measure_the_distance(CHANNEL_SENSOR_TRIG_L, CHANNEL_SENSOR_ECHO_L)
-        measure_the_distance(CHANNEL_SENSOR_TRIG_R, CHANNEL_SENSOR_ECHO_R)
-    GPIO.cleanup()
-
-if __name__ == "__main__":
-    main()
-### ここまでプログラム単体テスト用
