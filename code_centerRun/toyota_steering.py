@@ -4,7 +4,7 @@ from enum import Enum
 
 # ラズパイから見たPCA9685の所在地の設定
 pwm = Adafruit_PCA9685.PCA9685(address=0x40, busnum=1)
-# 通信の周波数の設定。どこからどこへの？60がいいの？
+# 通信の周波数の設定
 pwm.set_pwm_freq(60)
 
 # PCA9685とモーターの接続チャネル番号
@@ -18,15 +18,11 @@ PULSE_LEFT_WEEKLY = 450
 PULSE_RIGHT = 285
 PULSE_RIGHT_WEEKLY = 320
 
-# Leftには2回連続しか曲がらないようにするためのカウンター
+# 同じ方向には2回連続しか曲がらないようにするためのカウンター
 count_left = 0
-# Rightには2回連続しか曲がらないようにするためのカウンター
 count_right = 0
-# Right_weeklyには2回連続しか曲がらないようにするためのカウンター
 count_right_weekly = 0
-# Left_weeklyには2回連続しか曲がらないようにするためのカウンター
 count_left_weekly = 0
-
 
 # shared_dataのインデントとセンサーの関係性をわかりやすくする用
 class SensorIndex(Enum):
@@ -91,16 +87,13 @@ def setting(copy_data):
         else:
             steer_left(PULSE_LEFT, 0.1)
             steer_straight(PULSE_STRAIGHT, 0.1)
-    # elif (copy_data[SensorIndex.F.value > 80]):
-    #     steer_straight(PULSE_STRAIGHT, 0.1)
     elif (copy_data[SensorIndex.F.value] <
-          (copy_data[SensorIndex.FR.value])): # 右前がひらけている時 Try2の場合は以下コメントアウト
+          (copy_data[SensorIndex.FR.value])): # 右前がひらけている時
         steer_right(PULSE_RIGHT_WEEKLY, 0.15)
         # steer_straight(PULSE_STRAIGHT, 0.1)
     elif (copy_data[SensorIndex.F.value] <
           (copy_data[SensorIndex.FL.value])): # 左前がひらけている時
         steer_left(PULSE_LEFT_WEEKLY, 0.15)
-        # steer_straight(PULSE_STRAIGHT, 0.1)
     else:
         steer_straight(PULSE_STRAIGHT, 0.1)
 
