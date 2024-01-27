@@ -6,7 +6,7 @@ import sys
 
 # ラズパイから見たPCA9685の所在地の設定
 pwm = Adafruit_PCA9685.PCA9685(address=0x40, busnum=1)
-# 通信の周波数の設定。どこからどこへの？60がいいの？
+# 通信の周波数の設定
 pwm.set_pwm_freq(60)
 
 # PCA9685とモーターの接続チャネル番号
