@@ -4,7 +4,8 @@
 超音波センサーを用いて障害物を検知し、コースを認識します。  
 
 
-
+![image](https://github.com/jizots/AI_minicar/blob/main/minicar_pic1.jpg)
+![image2](https://github.com/jizots/AI_minicar/blob/main/minicar_pic2.jpg)
 
 ## 概要
 
